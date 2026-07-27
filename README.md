@@ -39,17 +39,15 @@ These screenshots were captured from the actual running application with determi
 
 <img src="docs/images/stride-analytics.png" alt="Stride analytics dashboard showing completion trends, consistency heatmap, topic mastery, difficulty distribution, confidence progression, and streaks" width="100%" />
 
-<table>
-  <tr>
-    <td width="68%" valign="top">
-      <h3>Signal, not vanity metrics</h3>
-      <p>Understand daily and weekly momentum, topic mastery, solve efficiency, review retention, confidence progression, and difficulty balance. Filter every insight by time range and topic.</p>
-    </td>
-    <td width="32%" valign="top">
-      <img src="docs/images/stride-mobile.png" alt="Stride responsive analytics experience on mobile" width="100%" />
-    </td>
-  </tr>
-</table>
+### Signal, not vanity metrics
+
+Understand daily and weekly momentum, topic mastery, solve efficiency, review retention, confidence progression, and difficulty balance. Filter every insight by time range and topic.
+
+<div align="center">
+  <img src="docs/images/stride-mobile.png" alt="Stride responsive analytics experience on mobile" width="320" />
+  <br />
+  <sub>Complete analytics experience on mobile</sub>
+</div>
 
 ## Everything needed to build mastery
 
