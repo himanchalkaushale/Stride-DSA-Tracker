@@ -43,11 +43,47 @@ These screenshots were captured from the actual running application with determi
 
 Understand daily and weekly momentum, topic mastery, solve efficiency, review retention, confidence progression, and difficulty balance. Filter every insight by time range and topic.
 
-<div align="center">
-  <img src="docs/images/stride-mobile.png" alt="Stride responsive analytics experience on mobile" width="320" />
-  <br />
-  <sub>Complete analytics experience on mobile</sub>
-</div>
+#### Progress at a glance
+
+<img src="docs/images/stride-metrics.png" alt="Stride completion, solve time, efficiency, retention, and streak metrics" width="100%" />
+
+#### Momentum and consistency
+
+<table>
+  <tr>
+    <td width="58%">
+      <img src="docs/images/stride-momentum.png" alt="Stride daily completion momentum chart" width="100%" />
+    </td>
+    <td width="42%">
+      <img src="docs/images/stride-heatmap.png" alt="Stride twelve-week consistency heatmap" width="100%" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Daily completion momentum</sub></td>
+    <td align="center"><sub>12-week consistency map</sub></td>
+  </tr>
+</table>
+
+#### Mastery, balance, and confidence
+
+<table>
+  <tr>
+    <td width="40%">
+      <img src="docs/images/stride-mastery.png" alt="Stride topic mastery breakdown" width="100%" />
+    </td>
+    <td width="25%">
+      <img src="docs/images/stride-difficulty.png" alt="Stride completed difficulty distribution" width="100%" />
+    </td>
+    <td width="35%">
+      <img src="docs/images/stride-confidence.png" alt="Stride confidence progression chart" width="100%" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Topic mastery</sub></td>
+    <td align="center"><sub>Difficulty balance</sub></td>
+    <td align="center"><sub>Confidence progression</sub></td>
+  </tr>
+</table>
 
 ## Everything needed to build mastery
 
