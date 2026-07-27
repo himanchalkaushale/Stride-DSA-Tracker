@@ -26,6 +26,7 @@ export interface Database {
           active_topics: string[];
           difficulty_min: Difficulty;
           difficulty_max: Difficulty;
+          planner_last_generated_date: string | null;
           onboarding_complete: boolean;
           created_at: string;
           updated_at: string;

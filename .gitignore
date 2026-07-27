@@ -24,3 +24,13 @@ next-env.d.ts
 
 # deployment
 .vercel
+
+# tests
+/test-results
+/playwright-report
+
+# local agent and hosting metadata
+/.agents
+/.codex
+/.openai
+/PHASE_HANDOFF.md

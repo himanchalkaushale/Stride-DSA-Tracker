@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./phase-two.css";
+import "./phase-three.css";
+import "./phase-four.css";
 
 export const metadata: Metadata = {
   title: { default: "Stride — DSA Progress Tracker", template: "%s · Stride" },

@@ -8,7 +8,11 @@ export type Attempt = Database["public"]["Tables"]["attempts"]["Row"];
 export type SolutionRevision = Database["public"]["Tables"]["solution_revisions"]["Row"];
 
 export interface ProblemWithProgress extends Problem {
-  progress: Pick<UserProblem, "status" | "bookmarked" | "confidence" | "next_review_at"> | null;
+  progress: UserProblem | null;
+}
+
+export interface DailyTaskWithProblem extends DailyTask {
+  problem: Problem;
 }
 
 export interface OnboardingPreferences {
@@ -28,4 +32,35 @@ export interface ProblemFilters {
   statuses: ProblemStatus[];
   patterns: string[];
   source: string | null;
+}
+
+export type ProblemSort = "title" | "difficulty" | "recent" | "estimated";
+export type ProblemView = "grid" | "table";
+
+export interface CustomProblemInput {
+  title: string;
+  description: string | null;
+  difficulty: Difficulty;
+  topics: string[];
+  patterns: string[];
+  source: string;
+  externalUrl: string | null;
+  estimatedMinutes: number;
+}
+
+export interface RevisionInput {
+  language: string;
+  code: string;
+  approachNotes: string;
+  generalNotes: string;
+  timeComplexity: string | null;
+  spaceComplexity: string | null;
+}
+
+export interface AttemptInput {
+  result: Database["public"]["Enums"]["attempt_result"];
+  language: string;
+  durationMinutes: number;
+  confidence: number | null;
+  notes: string | null;
 }
