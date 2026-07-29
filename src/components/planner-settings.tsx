@@ -44,21 +44,21 @@ export function PlannerSettings({ userId, email, initialProfile }: {
         difficulty_min: profile.difficulty_min,
         difficulty_max: profile.difficulty_max,
       });
-      setProfile(saved); setState("saved"); setMessage("Practice settings saved. They will shape the next generated queue.");
+      setProfile(saved); setState("saved"); setMessage("Practice settings saved.");
     } catch (cause) {
       setState("error"); setMessage(cause instanceof Error ? cause.message : "Could not save settings.");
     }
   };
 
   return <section className="panel settings-panel">
-    <div className="settings-section"><div><h2>Profile</h2><p>Your personal workspace identity.</p></div><div className="settings-fields"><label><span>Display name</span><input value={profile.display_name} onChange={(event) => setProfile({ ...profile, display_name: event.target.value })} /></label><label><span>Email</span><input value={email} readOnly /></label></div></div>
-    <div className="settings-section"><div><h2>Daily plan</h2><p>Generated on your first visit of each local calendar day.</p></div><div className="settings-fields two">
+    <div className="settings-section"><div><h2>Profile</h2><p>Your personal workspace identity.</p></div><div className="settings-fields"><label><span>Display name</span><input value={profile.display_name} onChange={(event) => setProfile({ ...profile, display_name: event.target.value })} /></label><label><span>Email</span><input value={email} title={email} readOnly /></label></div></div>
+    <div className="settings-section"><div><h2>Daily plan</h2><p>Set your target, then choose and order every question manually on the Today page.</p></div><div className="settings-fields two">
       <label><span>Daily target</span><input type="number" min="1" max="8" value={profile.daily_target} onChange={(event) => setProfile({ ...profile, daily_target: Number(event.target.value) })} /></label>
       <label><span>Timezone</span><select value={profile.timezone} onChange={(event) => setProfile({ ...profile, timezone: event.target.value })}>{!timezones.includes(profile.timezone) && <option>{profile.timezone}</option>}{timezones.map((timezone) => <option key={timezone}>{timezone}</option>)}</select></label>
       <label><span>Minimum difficulty</span><select value={profile.difficulty_min} onChange={(event) => setProfile({ ...profile, difficulty_min: event.target.value as Difficulty })}><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select></label>
       <label><span>Maximum difficulty</span><select value={profile.difficulty_max} onChange={(event) => setProfile({ ...profile, difficulty_max: event.target.value as Difficulty })}><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select></label>
     </div></div>
-    <div className="settings-section"><div><h2>Active topics</h2><p>Weak problems in these topics receive priority.</p></div><div className="choice-pills">{TOPICS.map((topic) => <button type="button" className={profile.active_topics.includes(topic) ? "active" : ""} onClick={() => toggle("active_topics", topic)} key={topic}>{topic}</button>)}</div></div>
+    <div className="settings-section"><div><h2>Active topics</h2><p>Keep track of the topics you are currently practicing.</p></div><div className="choice-pills">{TOPICS.map((topic) => <button type="button" className={profile.active_topics.includes(topic) ? "active" : ""} onClick={() => toggle("active_topics", topic)} key={topic}>{topic}</button>)}</div></div>
     <div className="settings-section"><div><h2>Preferred languages</h2><p>Your primary languages for practice and saved solutions.</p></div><div className="choice-pills">{LANGUAGES.map((language) => <button type="button" className={profile.preferred_languages.includes(language) ? "active" : ""} onClick={() => toggle("preferred_languages", language)} key={language}>{language}</button>)}</div></div>
     {message && <p className={`form-message ${state === "error" ? "error" : "success"}`}>{message}</p>}
     <div className="settings-save"><button className="button button-primary" disabled={state === "saving"} onClick={save}>{state === "saving" ? "Saving…" : "Save practice settings"}</button></div>

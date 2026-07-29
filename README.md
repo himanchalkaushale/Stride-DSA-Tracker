@@ -203,6 +203,10 @@ In **Supabase → Authentication → URL Configuration**:
 - Enable email authentication
 - Optionally enable Google OAuth and configure its credentials
 
+Stride uses direct email/password registration. To allow immediate access
+without verification emails, disable **Confirm email** in the Supabase email
+provider settings.
+
 ### 4. Configure the application
 
 Copy `.env.example` to `.env.local`:

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowIcon, CheckIcon, LogoIcon, SparkIcon } from "@/components/icons";
 
 const features = [
-  "Adaptive daily problem queue",
+  "Your own daily question plan",
   "Code, notes, and solution history",
   "Topic mastery and streak analytics",
 ];

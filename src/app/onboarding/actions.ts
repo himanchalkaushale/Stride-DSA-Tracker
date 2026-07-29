@@ -7,6 +7,20 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { SupabaseTrackerRepository } from "@/lib/repository/tracker-repository";
 import type { Difficulty } from "@/types/database";
 
+function onboardingErrorMessage(error: unknown) {
+  if (error && typeof error === "object") {
+    const code = "code" in error ? String(error.code) : "";
+    const message = "message" in error ? String(error.message) : "";
+    if (code === "PGRST205" || message.includes("public.profiles")) {
+      return "Database setup is incomplete. Apply the Supabase migrations, then try again.";
+    }
+    if (/fetch failed|network|connect/i.test(message)) {
+      return "Could not reach Supabase. Check the connection and try again.";
+    }
+  }
+  return "We couldn't create your workspace. Please try again.";
+}
+
 export async function completeOnboarding(formData: FormData) {
   if (!isSupabaseConfigured) redirect("/auth?error=Supabase+is+not+configured");
   const supabase = await createClient();
@@ -26,14 +40,18 @@ export async function completeOnboarding(formData: FormData) {
   }
 
   const repository = new SupabaseTrackerRepository(supabase);
-  await repository.saveOnboarding(user.id, {
-    displayName,
-    dailyTarget,
-    timezone,
-    preferredLanguages,
-    activeTopics,
-    difficultyMin: validDifficulty(formData.get("difficultyMin")),
-    difficultyMax: validDifficulty(formData.get("difficultyMax")),
-  });
+  try {
+    await repository.saveOnboarding(user.id, {
+      displayName,
+      dailyTarget,
+      timezone,
+      preferredLanguages,
+      activeTopics,
+      difficultyMin: validDifficulty(formData.get("difficultyMin")),
+      difficultyMax: validDifficulty(formData.get("difficultyMax")),
+    });
+  } catch (error) {
+    redirect(`/onboarding?error=${encodeURIComponent(onboardingErrorMessage(error))}`);
+  }
   redirect("/today");
 }

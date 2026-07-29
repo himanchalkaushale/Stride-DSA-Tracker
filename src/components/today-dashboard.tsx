@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ArrowIcon, CheckIcon, ClockIcon, FlameIcon, SparkIcon } from "@/components/icons";
-import { buildDailyPlan, calculateStreaks, nextReviewAt } from "@/lib/planner";
+import { calculateStreaks, nextReviewAt } from "@/lib/planner";
 import { SupabaseTrackerRepository } from "@/lib/repository/tracker-repository";
 import { createClient } from "@/lib/supabase/client";
 import { Toast } from "@/components/toast";
+import { ProblemForm } from "@/components/problem-library";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import type { TaskStatus } from "@/types/database";
-import type { Attempt, DailyTask, ProblemWithProgress, Profile } from "@/types/models";
+import type { Attempt, CustomProblemInput, DailyTask, ProblemWithProgress, Profile } from "@/types/models";
 
 interface Props {
   userId: string;
@@ -24,20 +26,23 @@ export function TodayDashboard({
   userId, profile, dateKey, initialTasks, allTasks, problems, recentAttempts,
 }: Props) {
   const repository = useMemo(() => new SupabaseTrackerRepository(createClient()), []);
-  const problemById = useMemo(() => new Map(problems.map((problem) => [problem.id, problem])), [problems]);
+  const [libraryProblems, setLibraryProblems] = useState(problems);
+  const problemById = useMemo(() => new Map(libraryProblems.map((problem) => [problem.id, problem])), [libraryProblems]);
   const [tasks, setTasks] = useState(initialTasks);
   const [history, setHistory] = useState(allTasks);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [addProblemId, setAddProblemId] = useState("");
+  const [questionFormOpen, setQuestionFormOpen] = useState(false);
+  const [taskToRemove, setTaskToRemove] = useState<DailyTask | null>(null);
   const [toast, setToast] = useState("");
 
   const completed = tasks.filter((task) => task.status === "completed").length;
   const completedDates = history.filter((task) => task.status === "completed").map((task) => task.task_date);
   const streaks = calculateStreaks(completedDates, dateKey);
   const assigned = new Set(tasks.map((task) => task.problem_id));
-  const available = problems.filter((problem) => !assigned.has(problem.id) && problem.progress?.status !== "archived");
-  const overdue = problems.filter((problem) =>
+  const available = libraryProblems.filter((problem) => !assigned.has(problem.id) && problem.progress?.status !== "archived");
+  const overdue = libraryProblems.filter((problem) =>
     !assigned.has(problem.id)
     && !!problem.progress?.next_review_at
     && problem.progress.next_review_at <= new Date().toISOString(),
@@ -82,16 +87,19 @@ export function TodayDashboard({
   };
 
   const removeTask = async (task: DailyTask) => {
-    if (!window.confirm("Remove this problem from today’s plan? Your problem history will be kept.")) return;
     const previous = tasks;
+    setBusy(task.id);
     setTasks((items) => items.filter((item) => item.id !== task.id));
     try {
       await repository.deleteDailyTask(task.id);
       setHistory((items) => items.filter((item) => item.id !== task.id));
+      setTaskToRemove(null);
       setToast("Problem removed from today’s plan.");
     } catch (cause) {
       setTasks(previous);
       setError(cause instanceof Error ? cause.message : "Could not remove the task.");
+    } finally {
+      setBusy(null);
     }
   };
 
@@ -131,35 +139,19 @@ export function TodayDashboard({
     }
   };
 
-  const replaceTask = async (task: DailyTask) => {
-    const suggestion = buildDailyPlan({
-      problems,
-      target: 1,
-      activeTopics: profile.active_topics,
-      difficultyMin: profile.difficulty_min,
-      difficultyMax: profile.difficulty_max,
-      now: new Date(),
-      excludedProblemIds: [...assigned],
-    })[0];
-    if (!suggestion) {
-      setError("No unassigned problem matches your current planner settings.");
-      return;
+  const createQuestionAndAdd = async (input: CustomProblemInput) => {
+    const saved = await repository.createProblem(userId, input);
+    const question: ProblemWithProgress = { ...saved, progress: null };
+    setLibraryProblems((items) => [question, ...items]);
+    const [created] = await repository.createDailyTasks([{
+      user_id: userId, problem_id: saved.id, task_date: dateKey,
+      position: tasks.length, status: "planned", source: "manual",
+    }]);
+    if (created) {
+      setTasks((items) => [...items, created]);
+      setHistory((items) => [created, ...items]);
     }
-    setBusy(task.id);
-    try {
-      const [created] = await repository.createDailyTasks([{
-        user_id: userId, problem_id: suggestion.problemId, task_date: dateKey,
-        position: task.position, status: "planned", source: suggestion.source,
-      }]);
-      await repository.deleteDailyTask(task.id);
-      setTasks((items) => items.map((item) => item.id === task.id ? created : item));
-      setHistory((items) => [created, ...items.filter((item) => item.id !== task.id)]);
-      setToast("Problem replaced with a new planner suggestion.");
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not replace the problem.");
-    } finally {
-      setBusy(null);
-    }
+    setToast("Question created and added to today’s plan.");
   };
 
   const date = new Intl.DateTimeFormat("en-US", {
@@ -169,7 +161,7 @@ export function TodayDashboard({
   return (
     <div className="page-shell today-page">
       <header className="page-heading">
-        <div><span className="page-date">{date.toUpperCase()}</span><h1>Good morning, {profile.display_name.split(" ")[0]}.</h1><p>Your adaptive plan is ready. Finish one problem to protect your momentum.</p></div>
+        <div><span className="page-date">{date.toUpperCase()}</span><h1>Good morning, {profile.display_name.split(" ")[0]}.</h1><p>Build today’s plan yourself and practice the questions you choose.</p></div>
         {continueTask
           ? <Link className="button button-primary" href={`/problems/${continueTask.problem_id}`}>Continue solving <ArrowIcon /></Link>
           : <Link className="button button-quiet" href="/problems">Explore problems <ArrowIcon /></Link>}
@@ -199,19 +191,19 @@ export function TodayDashboard({
                   <select aria-label={`Status for ${problem.title}`} value={task.status} disabled={busy === task.id} onChange={(event) => updateTask(task, event.target.value as TaskStatus)}>
                     <option value="planned">Planned</option><option value="in_progress">In progress</option><option value="completed">Completed</option><option value="skipped">Skipped</option><option value="review_due">Review due</option>
                   </select>
-                  <button onClick={() => replaceTask(task)} disabled={busy === task.id}>Replace</button>
-                  <button className="danger" onClick={() => removeTask(task)}>Remove</button>
+                  <button className="danger" onClick={() => setTaskToRemove(task)}>Remove</button>
                 </div>
               </article>;
             })}
-            {!tasks.length && <div className="empty-state compact"><span className="empty-orbit"><SparkIcon /></span><h3>Your queue is clear</h3><p>Add a problem below or adjust your planner settings.</p></div>}
+            {!tasks.length && <div className="empty-state compact"><span className="empty-orbit"><SparkIcon /></span><h3>Build today’s plan</h3><p>Choose a saved question or create a new one below.</p></div>}
           </div>
           <div className="queue-add">
             <select value={addProblemId} onChange={(event) => setAddProblemId(event.target.value)}>
-              <option value="">Add a problem…</option>
+              <option value="">Choose a saved question…</option>
               {available.map((problem) => <option value={problem.id} key={problem.id}>{problem.title} · {problem.difficulty}</option>)}
             </select>
             <button className="button button-quiet" disabled={!addProblemId || busy === "add"} onClick={() => addTask()}>{busy === "add" ? "Adding…" : "Add to today"}</button>
+            <button className="button button-primary" onClick={() => setQuestionFormOpen(true)}>+ New question</button>
           </div>
         </section>
 
@@ -226,6 +218,14 @@ export function TodayDashboard({
           </section>
         </aside>
       </div>
+      {questionFormOpen && <ProblemForm onClose={() => setQuestionFormOpen(false)} onSave={createQuestionAndAdd} submitLabel="Create and add to today" />}
+      {taskToRemove && <ConfirmDialog
+        title="Remove from today’s plan?"
+        description={`“${problemById.get(taskToRemove.problem_id)?.title ?? "This question"}” will be removed from today. Your attempts, notes, and solution history will remain safe.`}
+        busy={busy === taskToRemove.id}
+        onCancel={() => setTaskToRemove(null)}
+        onConfirm={() => removeTask(taskToRemove)}
+      />}
       {toast && <Toast message={toast} onDismiss={() => setToast("")} />}
     </div>
   );

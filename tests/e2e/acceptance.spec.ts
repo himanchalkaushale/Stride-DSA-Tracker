@@ -30,11 +30,11 @@ test.describe("complete daily practice acceptance flow", () => {
     await expect(page.getByText("Daily practice plan")).toBeVisible();
 
     await page.goto("/problems");
-    await page.getByRole("button", { name: /add problem/i }).click();
+    await page.getByRole("button", { name: /add question/i }).click();
     const title = `Acceptance problem ${Date.now()}`;
     await page.getByLabel(/title/i).fill(title);
     await page.getByLabel(/topics/i).fill("Arrays");
-    await page.getByRole("button", { name: /^add problem$/i }).click();
+    await page.getByRole("button", { name: /^add question$/i }).click();
     await expect(page.getByText(title)).toBeVisible();
     await page.getByText(title).click();
 

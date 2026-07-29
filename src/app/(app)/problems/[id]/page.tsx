@@ -2,21 +2,19 @@ import { notFound } from "next/navigation";
 import { ProblemWorkspace } from "@/components/problem-workspace";
 import { SupabaseTrackerRepository } from "@/lib/repository/tracker-repository";
 import { localDateKey } from "@/lib/planner";
-import { createClient } from "@/lib/supabase/server";
+import { getAppContext } from "@/lib/server-data";
 
 export default async function ProblemPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { supabase, user, profile } = await getAppContext();
   if (!user) return null;
   const repository = new SupabaseTrackerRepository(supabase);
-  const problem = await repository.getProblem(user.id, id);
-  if (!problem) notFound();
-  const [attempts, revisions, profile] = await Promise.all([
+  const [problem, attempts, revisions] = await Promise.all([
+    repository.getProblem(user.id, id),
     repository.listAttempts(user.id, id),
     repository.listRevisions(user.id, id),
-    repository.getProfile(user.id),
   ]);
+  if (!problem) notFound();
   return <ProblemWorkspace
     userId={user.id}
     problem={problem}

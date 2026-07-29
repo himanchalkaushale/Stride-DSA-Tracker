@@ -1,0 +1,1066 @@
+/*
+ * Readability and usability layer
+ * Loaded last so legacy compact styles inherit a comfortable, accessible scale.
+ */
+:root {
+  --bg: #0b0d0b;
+  --surface: #151814;
+  --surface-2: #1b2019;
+  --surface-3: #242a21;
+  --line: rgba(238, 246, 229, 0.12);
+  --line-strong: rgba(238, 246, 229, 0.2);
+  --text: #f5f7f1;
+  --muted: #aab1a4;
+  --muted-2: #81897c;
+  --lime: #bdf36f;
+  --lime-soft: rgba(189, 243, 111, 0.13);
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-size: 15px;
+  line-height: 1.55;
+  background:
+    radial-gradient(circle at 85% -10%, rgba(189, 243, 111, 0.055), transparent 28rem),
+    var(--bg);
+}
+
+button,
+input,
+select,
+textarea {
+  font-size: 14px;
+}
+
+input,
+select {
+  min-height: 46px;
+  padding: 0 14px;
+  border-radius: 10px;
+}
+
+textarea {
+  padding: 13px 14px;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #6f776b;
+  opacity: 1;
+}
+
+.button {
+  min-height: 44px;
+  height: auto;
+  padding: 10px 18px;
+  border-radius: 11px;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.button-primary {
+  box-shadow: 0 10px 28px rgba(189, 243, 111, 0.14);
+}
+
+.button-quiet {
+  background: rgba(255, 255, 255, 0.035);
+  color: #d5d9d0;
+}
+
+.panel {
+  border-color: var(--line);
+  border-radius: 14px;
+  background: linear-gradient(145deg, rgba(24, 28, 23, 0.98), rgba(19, 22, 18, 0.98));
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
+}
+
+.page-kicker,
+.eyebrow {
+  font-size: 11px;
+  line-height: 1.3;
+  letter-spacing: 0.11em;
+}
+
+.difficulty,
+.problem-card .difficulty,
+.problem-list .difficulty,
+.workspace-title .difficulty {
+  padding: 5px 9px;
+  font-size: 11px;
+  border-radius: 999px;
+}
+
+/* App navigation */
+.app-layout {
+  grid-template-columns: 250px 1fr;
+}
+
+.sidebar {
+  width: 250px;
+  padding: 28px 18px 20px;
+  background: rgba(16, 19, 15, 0.98);
+}
+
+.sidebar-brand {
+  margin-bottom: 42px;
+}
+
+.sidebar nav small {
+  padding: 0 12px 10px;
+  color: var(--muted-2);
+  font-size: 10px;
+}
+
+.sidebar nav a {
+  min-height: 48px;
+  height: auto;
+  padding: 0 13px;
+  border-radius: 10px;
+  color: #aab1a5;
+  font-size: 14px;
+}
+
+.sidebar nav svg {
+  width: 18px;
+}
+
+.sidebar nav a.active {
+  color: #dcf8ba;
+  background: rgba(189, 243, 111, 0.12);
+}
+
+.nav-label {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.route-pending {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+  border: 2px solid rgba(189, 243, 111, 0.3);
+  border-top-color: var(--lime);
+  border-radius: 50%;
+  animation: route-spin 0.65s linear infinite;
+}
+
+@keyframes route-spin {
+  to { transform: rotate(360deg); }
+}
+
+.sidebar-streak {
+  padding: 13px;
+  border-radius: 12px;
+  gap: 11px;
+}
+
+.sidebar-streak > span {
+  width: 36px;
+  height: 36px;
+}
+
+.sidebar-streak strong,
+.sidebar-user strong {
+  font-size: 12px;
+}
+
+.sidebar-streak small,
+.sidebar-user small {
+  margin-top: 2px;
+  color: var(--muted-2);
+  font-size: 10px;
+}
+
+.sidebar-user {
+  grid-template-columns: 38px 1fr 32px;
+  gap: 10px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.sidebar-user > span:nth-child(2) {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.sidebar-user strong,
+.sidebar-user small {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-user button {
+  width: 32px;
+  min-width: 32px;
+}
+
+.avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+.app-topbar {
+  height: 68px;
+  padding: 0 38px;
+  background: rgba(11, 13, 11, 0.86);
+}
+
+.connection {
+  color: var(--muted-2);
+  font-size: 10px;
+}
+
+.avatar.small {
+  width: 34px;
+  height: 34px;
+}
+
+/* Page hierarchy */
+.page-shell {
+  max-width: 1320px;
+  padding: 48px 44px 90px;
+}
+
+.page-heading {
+  margin-bottom: 34px;
+  gap: 28px;
+}
+
+.page-heading h1 {
+  margin: 7px 0 8px;
+  font-size: clamp(32px, 3vw, 42px);
+  line-height: 1.1;
+}
+
+.page-heading p {
+  max-width: 680px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.page-date {
+  color: #91998d;
+  font-size: 11px;
+}
+
+.state-banner {
+  min-height: 48px;
+  padding: 11px 14px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.state-banner > span,
+.state-banner button {
+  font-size: 12px;
+}
+
+/* Dashboard */
+.streak-risk {
+  padding: 14px 16px;
+  gap: 13px;
+}
+
+.streak-risk b {
+  font-size: 14px;
+}
+
+.streak-risk span {
+  font-size: 12px;
+  color: #c29d78;
+}
+
+.metric-grid {
+  gap: 14px;
+  margin: 16px 0;
+}
+
+.metric-grid article {
+  min-height: 104px;
+  padding: 19px;
+  gap: 14px;
+  border-radius: 14px;
+}
+
+.metric-icon {
+  width: 43px;
+  height: 43px;
+  border-radius: 11px;
+}
+
+.metric-icon svg {
+  width: 20px;
+}
+
+.metric-grid small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.metric-grid strong {
+  font-size: 23px;
+}
+
+.metric-grid strong em {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.metric-trend {
+  padding: 6px 9px;
+  font-size: 10px;
+}
+
+.dashboard-grid {
+  gap: 16px;
+}
+
+.today-queue,
+.focus-card {
+  padding: 24px;
+}
+
+.panel-heading span,
+.focus-card > span,
+.coming-panel > span {
+  font-size: 10px;
+}
+
+.panel-heading h2,
+.side-panel h2 {
+  margin: 6px 0;
+  font-size: 19px;
+}
+
+.panel-heading > small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.goal-track {
+  height: 6px;
+  margin: 18px 0 8px;
+}
+
+.daily-task {
+  min-height: 106px;
+  grid-template-columns: 36px minmax(180px, 1fr) auto;
+  gap: 14px;
+  padding: 15px 0;
+}
+
+.task-order button {
+  width: 30px;
+  height: 28px;
+  font-size: 15px;
+}
+
+.task-copy > span {
+  font-size: 10px;
+}
+
+.task-copy > a {
+  margin: 6px 0;
+  font-size: 16px;
+}
+
+.task-copy small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.task-actions {
+  gap: 8px;
+}
+
+.task-actions select {
+  width: 132px;
+  height: 42px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.task-actions button,
+.mini-activity button {
+  min-height: 38px;
+  padding: 0 8px;
+  font-size: 12px;
+}
+
+.queue-add {
+  margin-top: 18px;
+  padding-top: 18px;
+  gap: 10px;
+}
+
+.queue-add select,
+.queue-add .button {
+  min-height: 44px;
+  height: auto;
+  font-size: 13px;
+}
+
+.side-panel {
+  padding: 22px;
+}
+
+.side-panel > p {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.mini-activity {
+  min-height: 66px;
+}
+
+.mini-activity b {
+  font-size: 13px;
+}
+
+.mini-activity small,
+.mini-activity time {
+  color: var(--muted-2);
+  font-size: 11px;
+}
+
+.empty-state h2,
+.empty-state h3 {
+  font-size: 19px;
+}
+
+.empty-state p {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.empty-state .button {
+  min-height: 42px;
+  font-size: 13px;
+}
+
+/* Question library */
+.library-controls {
+  grid-template-columns: minmax(240px, 1.7fr) repeat(5, minmax(120px, 0.65fr));
+  gap: 9px;
+  padding: 10px;
+}
+
+.library-controls select,
+.library-search {
+  min-height: 44px;
+  height: auto;
+  font-size: 12px;
+}
+
+.library-search input {
+  height: 42px;
+  font-size: 13px;
+}
+
+.library-meta {
+  min-height: 60px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.library-meta select {
+  min-height: 38px;
+  font-size: 12px;
+}
+
+.text-button {
+  padding: 8px;
+  font-size: 12px;
+}
+
+.problem-grid {
+  gap: 14px;
+}
+
+.problem-card {
+  min-height: 260px;
+  padding: 21px;
+}
+
+.problem-card h2 {
+  margin: 17px 0 8px;
+  font-size: 19px;
+  line-height: 1.3;
+}
+
+.problem-card p {
+  height: auto;
+  min-height: 46px;
+  margin-bottom: 13px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.bookmark {
+  min-width: 38px;
+  min-height: 38px;
+  font-size: 20px;
+}
+
+.tag-list.compact span {
+  padding: 6px 9px;
+  font-size: 11px;
+}
+
+.problem-external-link {
+  margin: 12px 0;
+  font-size: 12px;
+}
+
+.problem-card-footer {
+  gap: 10px;
+  padding-top: 15px;
+}
+
+.problem-card-footer select {
+  min-height: 38px;
+  max-width: 125px;
+  font-size: 11px;
+}
+
+.problem-card-footer > span,
+.card-actions button,
+.icon-action {
+  font-size: 11px;
+}
+
+.card-actions {
+  gap: 5px;
+}
+
+.problem-list-row {
+  min-height: 72px;
+  font-size: 12px;
+}
+
+.problem-list-row.head {
+  min-height: 44px;
+  font-size: 10px;
+}
+
+.problem-list-row b {
+  font-size: 13px;
+}
+
+.problem-list-row small,
+.problem-list-row select {
+  font-size: 11px;
+}
+
+/* Forms and settings */
+.problem-modal {
+  width: min(720px, 100%);
+  padding: 30px;
+}
+
+.modal-heading h2 {
+  font-size: 26px;
+}
+
+.modal-heading > button {
+  min-width: 40px;
+  min-height: 40px;
+}
+
+.login-form label,
+.field > span,
+.settings-fields label span,
+legend,
+.field-caption,
+.workspace-section > label,
+.complexity-grid label {
+  color: #c1c7bb;
+  font-size: 13px;
+}
+
+.form-message {
+  padding: 11px 13px;
+  font-size: 12px;
+}
+
+.settings-section h2 {
+  font-size: 18px;
+}
+
+.settings-section p {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.settings-section > *,
+.settings-fields,
+.settings-fields label {
+  min-width: 0;
+}
+
+.settings-fields input,
+.settings-fields select {
+  width: 100%;
+  min-width: 0;
+}
+
+.settings-fields input[readonly] {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.choice-pills {
+  gap: 8px;
+}
+
+.choice-pills button {
+  min-height: 40px;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+/* Solving workspace */
+.workspace-shell {
+  padding: 36px 38px 80px;
+}
+
+.workspace-grid {
+  grid-template-columns: minmax(0, 1fr) 350px;
+  gap: 16px;
+}
+
+.workspace-sidebar,
+.workspace-section {
+  min-width: 0;
+}
+
+.complexity-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+
+.complexity-grid label,
+.complexity-grid input {
+  width: 100%;
+  min-width: 0;
+}
+
+.complexity-grid input {
+  height: 44px;
+}
+
+.back-link {
+  font-size: 12px;
+}
+
+.workspace-title h1 {
+  font-size: 34px;
+}
+
+.workspace-header p {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.save-status {
+  font-size: 10px;
+}
+
+.editor-toolbar span {
+  font-size: 13px;
+}
+
+.editor-toolbar select {
+  font-size: 12px;
+}
+
+.note-field > span,
+.section-title > span {
+  font-size: 13px;
+}
+
+.section-title small {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.history-list b,
+.attempt-list b {
+  font-size: 12px;
+}
+
+.history-list small,
+.attempt-list small,
+.history-list button,
+.mini-empty {
+  font-size: 10px;
+}
+
+.attempt-list p {
+  font-size: 11px;
+}
+
+.attempt-result {
+  padding: 5px 7px;
+  font-size: 9px;
+}
+
+/* Analytics */
+.analytics-filters label {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.analytics-filters select {
+  min-height: 42px;
+  font-size: 12px;
+}
+
+.analytics-metrics article {
+  min-height: 112px;
+  padding: 18px;
+}
+
+.analytics-metrics small,
+.analytics-metrics span {
+  font-size: 11px;
+}
+
+.analytics-metrics strong {
+  font-size: 25px;
+}
+
+.mastery-list > div {
+  min-height: 58px;
+}
+
+.mastery-list b {
+  font-size: 12px;
+}
+
+.mastery-list small,
+.mastery-list strong,
+.difficulty-legend > span,
+.analytics-note {
+  font-size: 10px;
+}
+
+.heatmap-legend {
+  font-size: 10px;
+}
+
+/* Menus and feedback */
+.reminder-menu summary {
+  width: 38px;
+  height: 38px;
+}
+
+.reminder-popover {
+  width: min(380px, calc(100vw - 24px));
+  padding: 11px;
+}
+
+.reminder-popover header b {
+  font-size: 14px;
+}
+
+.reminder-popover header small,
+.reminder-popover a b,
+.reminder-popover a small,
+.reminder-popover > p {
+  font-size: 11px;
+}
+
+.toast {
+  min-height: 52px;
+  padding: 12px 12px 12px 15px;
+  font-size: 13px;
+}
+
+/* In-app confirmations */
+.confirm-backdrop {
+  background: rgba(4, 6, 4, 0.76);
+}
+
+.confirm-dialog {
+  width: min(480px, 100%);
+  padding: 28px;
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 17px;
+  border-color: rgba(231, 123, 114, 0.24);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.55);
+}
+
+.confirm-icon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: rgba(231, 123, 114, 0.1);
+  color: #f09a92;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.confirm-copy h2 {
+  margin: 7px 0 8px;
+  font-size: 22px;
+  line-height: 1.25;
+}
+
+.confirm-copy p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.confirm-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-top: 8px;
+}
+
+.button-danger {
+  border-color: rgba(231, 123, 114, 0.25);
+  background: #d86f67;
+  color: white;
+}
+
+.button-danger:hover {
+  background: #e47b73;
+  transform: translateY(-1px);
+}
+
+/* Landing, auth, and onboarding */
+.hero-copy > p {
+  color: #b0b7aa;
+  font-size: 17px;
+}
+
+.hero-actions > span,
+.hero-copy li {
+  font-size: 12px;
+}
+
+.auth-card {
+  width: min(460px, 100%);
+  padding: 42px;
+}
+
+.auth-heading h1 {
+  font-size: 30px;
+}
+
+.auth-heading p {
+  font-size: 14px;
+}
+
+.google-button {
+  min-height: 46px;
+  font-size: 14px;
+}
+
+.divider,
+.auth-switch,
+.auth-terms,
+.auth-footer {
+  font-size: 11px;
+}
+
+.onboarding-card > p {
+  font-size: 14px;
+}
+
+.choice-grid label span {
+  min-height: 42px;
+  height: auto;
+  padding: 7px;
+  font-size: 11px;
+}
+
+@media (max-width: 1100px) {
+  .library-controls {
+    grid-template-columns: 2fr repeat(3, 1fr);
+  }
+
+  .page-shell {
+    padding-inline: 30px;
+  }
+
+  .workspace-grid {
+    grid-template-columns: minmax(0, 1fr) 310px;
+  }
+}
+
+@media (max-width: 900px) {
+  .daily-task {
+    grid-template-columns: 32px 1fr;
+  }
+
+  .task-actions {
+    grid-column: 2;
+  }
+
+  .workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-sidebar {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  body {
+    font-size: 14px;
+  }
+
+  .mobile-top {
+    height: 66px;
+    padding: 0 18px;
+  }
+
+  .mobile-nav {
+    height: 70px;
+  }
+
+  .mobile-nav a {
+    gap: 5px;
+    font-size: 11px;
+  }
+
+  .mobile-nav svg {
+    width: 19px;
+  }
+
+  .page-shell {
+    padding: 30px 17px 100px;
+  }
+
+  .page-heading {
+    display: block;
+    margin-bottom: 26px;
+  }
+
+  .page-heading h1 {
+    font-size: 30px;
+  }
+
+  .page-heading p {
+    font-size: 14px;
+  }
+
+  .metric-grid article {
+    min-height: 90px;
+  }
+
+  .dashboard-grid {
+    display: block;
+  }
+
+  .today-queue {
+    padding: 18px;
+  }
+
+  .daily-task {
+    grid-template-columns: 30px minmax(0, 1fr);
+    gap: 9px;
+  }
+
+  .task-actions select {
+    width: 100%;
+  }
+
+  .queue-add {
+    flex-direction: column;
+  }
+
+  .queue-add .button {
+    width: 100%;
+  }
+
+  .today-side {
+    margin-top: 14px;
+  }
+
+  .library-controls {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .problem-card {
+    min-height: 230px;
+  }
+
+  .problem-modal {
+    padding: 21px;
+  }
+
+  .workspace-shell {
+    padding: 24px 15px 92px;
+  }
+
+  .workspace-sidebar {
+    display: flex;
+  }
+
+  .workspace-title h1 {
+    font-size: 27px;
+  }
+
+  .workspace-actions {
+    flex-wrap: wrap;
+  }
+
+  .analytics-metrics small,
+  .analytics-metrics span {
+    font-size: 10px;
+  }
+
+  .hero {
+    padding-top: 65px;
+  }
+
+  .hero h1 {
+    font-size: clamp(43px, 13vw, 58px);
+  }
+
+  .confirm-dialog {
+    padding: 22px;
+    grid-template-columns: 42px 1fr;
+  }
+
+  .confirm-icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .confirm-actions {
+    flex-direction: column-reverse;
+  }
+
+  .confirm-actions .button {
+    width: 100%;
+  }
+}

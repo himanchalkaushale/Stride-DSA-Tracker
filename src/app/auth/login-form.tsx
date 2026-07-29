@@ -1,13 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
-import { signInWithEmail, signInWithGoogle, type AuthState } from "./actions";
+import { signInWithGoogle, signInWithPassword, type AuthState } from "./actions";
 import { ArrowIcon } from "@/components/icons";
 
 const initialState: AuthState = {};
 
 export function LoginForm({ queryError }: { queryError?: string }) {
-  const [state, action, pending] = useActionState(signInWithEmail, initialState);
+  const [state, action, pending] = useActionState(signInWithPassword, initialState);
   return (
     <div className="login-form">
       <form action={signInWithGoogle}>
@@ -17,13 +18,15 @@ export function LoginForm({ queryError }: { queryError?: string }) {
       <form action={action}>
         <label htmlFor="email">Email address</label>
         <input id="email" name="email" type="email" placeholder="you@example.com" autoComplete="email" required />
+        <label htmlFor="password">Password</label>
+        <input id="password" name="password" type="password" placeholder="Your password" autoComplete="current-password" required />
         {(state.error || queryError) && <p className="form-message error" role="alert">{state.error ?? queryError}</p>}
-        {state.success && <p className="form-message success" role="status">{state.success}</p>}
         <button className="button button-primary auth-submit" disabled={pending}>
-          {pending ? "Sending secure link…" : <>Continue with email <ArrowIcon /></>}
+          {pending ? "Signing in…" : <>Sign in <ArrowIcon /></>}
         </button>
       </form>
-      <p className="auth-terms">By continuing, you agree to keep showing up for yourself.</p>
+      <p className="auth-switch">New to Stride? <Link href="/auth/create-account">Create an account</Link></p>
+      <p className="auth-terms">Secure authentication powered by Supabase.</p>
     </div>
   );
 }

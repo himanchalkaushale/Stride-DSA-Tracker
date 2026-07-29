@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import {
   AnalyticsIcon, BellIcon, FlameIcon, LogoIcon, LogoutIcon,
@@ -11,7 +11,7 @@ import type { Reminder } from "@/lib/analytics";
 
 const navItems = [
   { href: "/today", label: "Today", icon: TodayIcon },
-  { href: "/problems", label: "Problems", icon: ProblemsIcon },
+  { href: "/problems", label: "Questions", icon: ProblemsIcon },
   { href: "/analytics", label: "Analytics", icon: AnalyticsIcon },
   { href: "/settings", label: "Settings", icon: SettingsIcon },
 ];
@@ -38,7 +38,7 @@ export function AppShell({
           <small>WORKSPACE</small>
           {navItems.map(({ href, label, icon: NavIcon }) => (
             <Link href={href} className={pathname.startsWith(href) ? "active" : ""} aria-current={pathname.startsWith(href) ? "page" : undefined} key={href}>
-              <NavIcon /><span>{label}</span>
+              <NavIcon /><NavLabel label={label} />
             </Link>
           ))}
         </nav>
@@ -48,7 +48,7 @@ export function AppShell({
         </Link>
         <form action={signOut} className="sidebar-user">
           <span className="avatar">{initials || "DS"}</span>
-          <span><strong>{displayName}</strong><small>{email}</small></span>
+          <span><strong title={displayName}>{displayName}</strong><small title={email}>{email}</small></span>
           <button aria-label="Sign out" title="Sign out"><LogoutIcon /></button>
         </form>
       </aside>
@@ -65,11 +65,16 @@ export function AppShell({
       </div>
       <nav className="mobile-nav">
         {navItems.map(({ href, label, icon: NavIcon }) => (
-          <Link href={href} className={pathname.startsWith(href) ? "active" : ""} aria-current={pathname.startsWith(href) ? "page" : undefined} key={href}><NavIcon /><span>{label}</span></Link>
+          <Link href={href} className={pathname.startsWith(href) ? "active" : ""} aria-current={pathname.startsWith(href) ? "page" : undefined} key={href}><NavIcon /><NavLabel label={label} /></Link>
         ))}
       </nav>
     </div>
   );
+}
+
+function NavLabel({ label }: { label: string }) {
+  const { pending } = useLinkStatus();
+  return <span className="nav-label">{label}{pending && <i className="route-pending" aria-label={`Loading ${label}`} />}</span>;
 }
 
 function ReminderMenu({ reminders }: { reminders: Reminder[] }) {

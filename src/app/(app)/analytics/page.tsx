@@ -1,19 +1,15 @@
 import { AnalyticsDashboard } from "@/components/analytics-dashboard";
 import { localDateKey } from "@/lib/planner";
-import { SupabaseTrackerRepository } from "@/lib/repository/tracker-repository";
-import { createClient } from "@/lib/supabase/server";
+import { getAppContext, getCurrentProblems, getCurrentTasks } from "@/lib/server-data";
 
 export const metadata = { title: "Analytics" };
 
 export default async function AnalyticsPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { supabase, user, profile } = await getAppContext();
   if (!user) return null;
-  const repository = new SupabaseTrackerRepository(supabase);
-  const [profile, problems, tasks, attemptsResult] = await Promise.all([
-    repository.getProfile(user.id),
-    repository.listProblems(user.id),
-    repository.listDailyTasks(user.id),
+  const [problems, tasks, attemptsResult] = await Promise.all([
+    getCurrentProblems(),
+    getCurrentTasks(),
     supabase.from("attempts").select("*").eq("user_id", user.id).order("attempted_at", { ascending: true }),
   ]);
   return <AnalyticsDashboard
