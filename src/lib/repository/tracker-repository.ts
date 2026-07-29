@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
+import { normalizeProblemTopics, normalizeTopics } from "@/lib/constants";
 import type {
   Attempt, AttemptInput, CustomProblemInput, DailyTask, OnboardingPreferences, Problem,
   ProblemWithProgress, Profile, RevisionInput, SolutionRevision, UserProblem,
@@ -13,8 +14,10 @@ export interface TrackerRepository {
   listProblems(userId: string): Promise<ProblemWithProgress[]>;
   getProblem(userId: string, problemId: string): Promise<ProblemWithProgress | null>;
   createProblem(userId: string, input: CustomProblemInput): Promise<Problem>;
+  createProblems(userId: string, inputs: CustomProblemInput[]): Promise<Problem[]>;
   updateProblem(problemId: string, input: CustomProblemInput): Promise<Problem>;
   deleteProblem(problemId: string): Promise<void>;
+  deleteProblems(problemIds: string[]): Promise<void>;
   saveProgress(userId: string, problemId: string, patch: Database["public"]["Tables"]["user_problems"]["Update"]): Promise<UserProblem>;
   listAttempts(userId: string, problemId: string): Promise<Attempt[]>;
   createAttempt(userId: string, problemId: string, input: AttemptInput): Promise<Attempt>;
@@ -90,7 +93,11 @@ export class SupabaseTrackerRepository implements TrackerRepository {
     if (problemsError) throw problemsError;
     if (progressError) throw progressError;
     const byProblem = new Map((progress ?? []).map((item) => [item.problem_id, item]));
-    return (problems ?? []).map((problem) => ({ ...problem, progress: byProblem.get(problem.id) ?? null }));
+    return (problems ?? []).map((problem) => ({
+      ...problem,
+      topics: normalizeProblemTopics(problem),
+      progress: byProblem.get(problem.id) ?? null,
+    }));
   }
 
   async getProblem(userId: string, problemId: string) {
@@ -100,26 +107,36 @@ export class SupabaseTrackerRepository implements TrackerRepository {
     ]);
     if (error) throw error;
     if (progressError) throw progressError;
-    return problem ? { ...problem, progress } : null;
+    return problem ? { ...problem, topics: normalizeProblemTopics(problem), progress } : null;
   }
 
   async createProblem(userId: string, input: CustomProblemInput) {
-    const baseSlug = input.title.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "problem";
-    const { data, error } = await this.db.from("problems").insert({
-      owner_id: userId,
-      title: input.title.trim(),
-      slug: `${baseSlug}-${crypto.randomUUID().slice(0, 8)}`,
-      description: input.description,
-      difficulty: input.difficulty,
-      topics: input.topics,
-      patterns: input.patterns,
-      source: input.source.trim() || "custom",
-      external_url: input.externalUrl,
-      estimated_minutes: input.estimatedMinutes,
-      is_curated: false,
-    }).select("*").single();
+    const [created] = await this.createProblems(userId, [input]);
+    return created;
+  }
+
+  async createProblems(userId: string, inputs: CustomProblemInput[]) {
+    if (!inputs.length) return [];
+    const values = inputs.map((input, index) => {
+      const baseSlug = input.title.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "problem";
+      return {
+        owner_id: userId,
+        title: input.title.trim(),
+        slug: `${baseSlug}-${crypto.randomUUID().slice(0, 8)}-${index}`,
+        description: input.description,
+        difficulty: input.difficulty,
+        topics: normalizeTopics(input.topics),
+        patterns: input.patterns,
+        source: input.source.trim() || "custom",
+        external_url: input.externalUrl,
+        estimated_minutes: input.estimatedMinutes,
+        is_curated: false,
+      };
+    });
+    const { data, error } = await this.db.from("problems").insert(values).select("*");
     if (error) throw error;
-    return data;
+    const bySlug = new Map((data ?? []).map((problem) => [problem.slug, problem]));
+    return values.map((value) => bySlug.get(value.slug)).filter((problem): problem is Problem => !!problem);
   }
 
   async updateProblem(problemId: string, input: CustomProblemInput) {
@@ -127,7 +144,7 @@ export class SupabaseTrackerRepository implements TrackerRepository {
       title: input.title.trim(),
       description: input.description,
       difficulty: input.difficulty,
-      topics: input.topics,
+      topics: normalizeTopics(input.topics),
       patterns: input.patterns,
       source: input.source.trim() || "custom",
       external_url: input.externalUrl,
@@ -139,6 +156,12 @@ export class SupabaseTrackerRepository implements TrackerRepository {
 
   async deleteProblem(problemId: string) {
     const { error } = await this.db.from("problems").delete().eq("id", problemId).eq("is_curated", false);
+    if (error) throw error;
+  }
+
+  async deleteProblems(problemIds: string[]) {
+    if (!problemIds.length) return;
+    const { error } = await this.db.from("problems").delete().in("id", problemIds).eq("is_curated", false);
     if (error) throw error;
   }
 

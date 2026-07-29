@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { SupabaseTrackerRepository } from "@/lib/repository/tracker-repository";
 import { Toast } from "@/components/toast";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { normalizeProblemTopics, normalizeTopic } from "@/lib/constants";
 import type { Difficulty, ProblemStatus } from "@/types/database";
 import type { CustomProblemInput, ProblemFilters, ProblemSort, ProblemView, ProblemWithProgress } from "@/types/models";
 
@@ -98,15 +99,15 @@ export function ProblemLibrary({ userId, initialProblems, loadError }: {
   }, []);
   useEffect(() => { if (preferencesReady.current) localStorage.setItem("stride.problem-library", JSON.stringify({ filters, sort, view })); }, [filters, sort, view]);
 
-  const topics = useMemo(() => [...new Set(problems.flatMap((p) => p.topics))].sort(), [problems]);
+  const topics = useMemo(() => [...new Set(problems.flatMap((problem) => normalizeProblemTopics(problem)))].sort(), [problems]);
   const patterns = useMemo(() => [...new Set(problems.flatMap((p) => p.patterns))].sort(), [problems]);
   const sources = useMemo(() => [...new Set(problems.map((p) => p.source))].sort(), [problems]);
   const visible = useMemo(() => {
     const needle = filters.search.trim().toLowerCase();
-    return problems.filter((problem) => {
+    return problems.map((problem) => ({ ...problem, topics: normalizeProblemTopics(problem) })).filter((problem) => {
       const status = problem.progress?.status ?? "not_added";
       return (!needle || [problem.title, problem.source, ...problem.topics, ...problem.patterns].join(" ").toLowerCase().includes(needle))
-        && (!filters.topics.length || filters.topics.some((topic) => problem.topics.includes(topic)))
+        && (!filters.topics.length || filters.topics.some((topic) => problem.topics.some((problemTopic) => normalizeTopic(problemTopic) === normalizeTopic(topic))))
         && (!filters.patterns.length || filters.patterns.some((pattern) => problem.patterns.includes(pattern)))
         && (!filters.difficulties.length || filters.difficulties.includes(problem.difficulty))
         && (!filters.statuses.length || filters.statuses.includes(status as ProblemStatus))
