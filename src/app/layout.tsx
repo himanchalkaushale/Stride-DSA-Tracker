@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./landing.css";
 import "./phase-two.css";
 import "./phase-three.css";
 import "./phase-four.css";
