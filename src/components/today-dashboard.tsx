@@ -163,16 +163,8 @@ export function TodayDashboard({
     setToast("Question created and added to today’s plan.");
   };
 
-  const acceptImportedPlan = (importedProblems: ProblemWithProgress[], importedTasks: DailyTask[]) => {
-    setLibraryProblems((items) => [...importedProblems, ...items]);
-    setHistory((items) => [...importedTasks, ...items]);
-    const todayImports = importedTasks.filter((task) => task.task_date === dateKey);
-    if (todayImports.length) {
-      setTasks((items) => [...items, ...todayImports].sort((a, b) => a.position - b.position));
-    }
-    const planDays = new Set(importedTasks.map((task) => task.task_date)).size;
-    setToast(`${importedProblems.length} questions scheduled across ${planDays} days.`);
-    router.refresh();
+  const acceptImportedPlan = (planId: string) => {
+    router.push(`/plans/${planId}`);
   };
 
   const date = new Intl.DateTimeFormat("en-US", {
@@ -233,7 +225,8 @@ export function TodayDashboard({
           <section className="panel side-panel"><span className="page-kicker">UPCOMING PLAN</span><h2>{upcomingDates.length ? "Your next plan days" : "No future questions yet"}</h2>
             {upcomingDates.map((taskDate) => {
               const dayTasks = history.filter((task) => task.task_date === taskDate && task.status !== "skipped");
-              return <div className="mini-activity upcoming-day" key={taskDate}><div><b>{new Date(`${taskDate}T12:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}</b><small>{dayTasks.length} {dayTasks.length === 1 ? "question" : "questions"} planned</small></div><span>{dayTasks.map((task) => problemById.get(task.problem_id)?.title).filter(Boolean).slice(0, 2).join(", ")}</span></div>;
+              const linkedPlanId = dayTasks.find((task) => task.plan_id)?.plan_id;
+              return <div className="mini-activity upcoming-day" key={taskDate}><div><b>{new Date(`${taskDate}T12:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}</b><small>{dayTasks.length} {dayTasks.length === 1 ? "question" : "questions"} planned</small></div><span>{dayTasks.map((task) => problemById.get(task.problem_id)?.title).filter(Boolean).slice(0, 2).join(", ")}{linkedPlanId && <Link href={`/plans/${linkedPlanId}`}>Manage plan →</Link>}</span></div>;
             })}
             {!upcomingDates.length && <p>Import a CSV to build a dated monthly plan automatically.</p>}
           </section>

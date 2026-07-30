@@ -1044,6 +1044,110 @@ legend,
   font-style: normal;
 }
 
+/* Practice plans */
+.segmented button {
+  min-height: 34px;
+  font-size: 12px;
+}
+
+.plan-card time {
+  font-size: 11px;
+}
+
+.plan-card p,
+.plan-card footer {
+  font-size: 12px;
+}
+
+.plan-origin {
+  padding: 5px 8px;
+  font-size: 10px;
+}
+
+.adoption-list b {
+  font-size: 13px;
+}
+
+.adoption-list small,
+.adoption-list > p {
+  font-size: 11px;
+}
+
+.plan-back {
+  font-size: 12px;
+}
+
+.plan-detail-header p {
+  font-size: 13px;
+}
+
+.plan-add h2 {
+  font-size: 18px;
+}
+
+.plan-day > header time {
+  font-size: 14px;
+}
+
+.plan-day > header small {
+  font-size: 11px;
+}
+
+.plan-entry-copy > a {
+  font-size: 14px;
+}
+
+.plan-entry-copy > span {
+  font-size: 11px;
+}
+
+.plan-entry input,
+.plan-entry select {
+  min-height: 38px;
+  font-size: 12px;
+}
+
+.entry-actions button {
+  min-height: 30px;
+  font-size: 11px;
+}
+
+.plan-recovery > p {
+  font-size: 12px;
+}
+
+.plan-recovery > .button {
+  min-height: 42px;
+  font-size: 13px;
+}
+
+.plan-recovery dt,
+.plan-recovery dd {
+  font-size: 11px;
+}
+
+.recovery-preview > strong,
+.recovery-preview span {
+  font-size: 12px;
+}
+
+.recovery-preview small,
+.recovery-preview > p {
+  font-size: 10px;
+}
+
+.upcoming-day > span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.upcoming-day > span a {
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
 /* Landing, auth, and onboarding */
 .hero-copy > p {
   color: #b0b7aa;

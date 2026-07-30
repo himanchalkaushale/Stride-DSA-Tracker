@@ -11,6 +11,7 @@ export type ProblemStatus = "backlog" | "in_progress" | "completed" | "review_du
 export type TaskStatus = "planned" | "in_progress" | "completed" | "skipped" | "review_due";
 export type AttemptResult = "solved" | "partial" | "failed" | "reviewed";
 export type TaskSource = "adaptive" | "manual" | "review";
+export type PlanOrigin = "csv" | "manual" | "adopted";
 
 export interface Database {
   public: {
@@ -88,6 +89,7 @@ export interface Database {
           id: string;
           user_id: string;
           problem_id: string;
+          plan_id: string | null;
           task_date: string;
           position: number;
           status: TaskStatus;
@@ -102,6 +104,24 @@ export interface Database {
           task_date: string;
         };
         Update: Partial<Database["public"]["Tables"]["daily_tasks"]["Row"]>;
+        Relationships: [];
+      };
+      plans: {
+        Row: {
+          id: string;
+          owner_id: string;
+          name: string;
+          origin: PlanOrigin;
+          source_filename: string | null;
+          daily_capacity: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["plans"]["Row"]> & {
+          owner_id: string;
+          name: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["plans"]["Row"]>;
         Relationships: [];
       };
       attempts: {
@@ -149,13 +169,37 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      create_practice_plan: {
+        Args: { p_name: string; p_origin?: PlanOrigin; p_source_filename?: string | null; p_daily_capacity?: number };
+        Returns: Database["public"]["Tables"]["plans"]["Row"];
+      };
+      import_practice_plan: {
+        Args: { p_name: string; p_source_filename: string | null; p_daily_capacity: number; p_entries: Json };
+        Returns: string;
+      };
+      adopt_tasks_into_plan: {
+        Args: { p_name: string; p_daily_capacity: number; p_task_ids: string[] };
+        Returns: string;
+      };
+      shift_plan_tasks: {
+        Args: { p_plan_id: string; p_from_date: string; p_days: number };
+        Returns: number;
+      };
+      redistribute_plan_tasks: {
+        Args: { p_plan_id: string; p_from_date: string; p_start_date: string; p_capacity: number };
+        Returns: number;
+      };
+      remove_plan_task: { Args: { p_task_id: string }; Returns: string };
+      delete_practice_plan: { Args: { p_plan_id: string }; Returns: undefined };
+    };
     Enums: {
       difficulty_level: Difficulty;
       problem_status: ProblemStatus;
       task_status: TaskStatus;
       attempt_result: AttemptResult;
       task_source: TaskSource;
+      plan_origin: PlanOrigin;
     };
     CompositeTypes: Record<string, never>;
   };

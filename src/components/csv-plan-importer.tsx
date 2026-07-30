@@ -5,18 +5,19 @@ import { PLAN_CSV_TEMPLATE, parsePlanCsv, type CsvPlanRow } from "@/lib/csv-plan
 import { TOPICS } from "@/lib/constants";
 import { SupabaseTrackerRepository } from "@/lib/repository/tracker-repository";
 import { createClient } from "@/lib/supabase/client";
-import type { DailyTask, ProblemWithProgress } from "@/types/models";
 
 export function CsvPlanImporter({
   userId,
   defaultStartDate,
   onClose,
   onImported,
+  defaultPlanName = "",
 }: {
   userId: string;
   defaultStartDate: string;
   onClose: () => void;
-  onImported: (problems: ProblemWithProgress[], tasks: DailyTask[]) => void;
+  onImported: (planId: string) => void;
+  defaultPlanName?: string;
 }) {
   const repository = useMemo(() => new SupabaseTrackerRepository(createClient()), []);
   const [startDate, setStartDate] = useState(defaultStartDate);
@@ -24,6 +25,7 @@ export function CsvPlanImporter({
   const [planTopic, setPlanTopic] = useState("");
   const [csvText, setCsvText] = useState("");
   const [fileName, setFileName] = useState("");
+  const [planName, setPlanName] = useState(defaultPlanName);
   const [preview, setPreview] = useState<CsvPlanRow[]>([]);
   const [error, setError] = useState("");
   const [importing, setImporting] = useState(false);
@@ -49,6 +51,7 @@ export function CsvPlanImporter({
     const detectedTopic = /linked[\s_-]*lists?/i.test(file.name) ? "Linked Lists" : "";
     setCsvText(text);
     setFileName(file.name);
+    if (!planName) setPlanName(file.name.replace(/\.csv$/i, "").replace(/[-_]+/g, " ").trim());
     setPlanTopic(detectedTopic);
     parse(text, startDate, questionsPerDay, detectedTopic);
   };
@@ -79,38 +82,17 @@ export function CsvPlanImporter({
 
   const importPlan = async () => {
     if (!preview.length) return;
+    if (!planName.trim()) {
+      setError("Enter a plan name.");
+      return;
+    }
     setImporting(true);
     setError("");
-    let createdProblems: Awaited<ReturnType<typeof repository.createProblems>> = [];
     try {
-      createdProblems = await repository.createProblems(userId, preview.map((row) => row.question));
-      if (createdProblems.length !== preview.length) throw new Error("Some questions could not be created. Nothing was scheduled.");
-
-      const positions = new Map<string, number>();
-      const createdTasks = await repository.createDailyTasks(preview.map((row, index) => {
-        const position = positions.get(row.taskDate) ?? 0;
-        positions.set(row.taskDate, position + 1);
-        return {
-          user_id: userId,
-          problem_id: createdProblems[index].id,
-          task_date: row.taskDate,
-          position,
-          status: "planned",
-          source: "manual",
-        };
-      }));
-      if (createdTasks.length !== preview.length) throw new Error("Some plan entries could not be scheduled.");
-
-      onImported(
-        createdProblems.map((problem) => ({ ...problem, progress: null })),
-        createdTasks,
-      );
+      const planId = await repository.importPlan(userId, planName, fileName, questionsPerDay, preview);
+      onImported(planId);
       onClose();
     } catch (cause) {
-      if (createdProblems.length) {
-        try { await repository.deleteProblems(createdProblems.map((problem) => problem.id)); }
-        catch { /* Preserve the original import error if cleanup also fails. */ }
-      }
       setError(cause instanceof Error ? cause.message : "The monthly plan could not be imported.");
       setImporting(false);
     }
@@ -128,6 +110,7 @@ export function CsvPlanImporter({
         </div>
 
         <div className="csv-options">
+          <label className="field"><span>Plan name</span><input maxLength={120} required value={planName} onChange={(event) => setPlanName(event.target.value)} placeholder="August interview sprint" /></label>
           <label className="field"><span>Plan start date</span><input type="date" value={startDate} onChange={(event) => changeStartDate(event.target.value)} /></label>
           <label className="field"><span>Questions per day</span><input type="number" min="1" max="20" value={questionsPerDay} onChange={(event) => changeDailyCount(Number(event.target.value))} /></label>
           <label className="field"><span>Main topic for Questions</span><select value={planTopic} onChange={(event) => changePlanTopic(event.target.value)}><option value="">Use CSV topic values</option>{TOPICS.map((topic) => <option key={topic}>{topic}</option>)}</select></label>

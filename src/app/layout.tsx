@@ -4,6 +4,7 @@ import "./landing.css";
 import "./phase-two.css";
 import "./phase-three.css";
 import "./phase-four.css";
+import "./plans.css";
 import "./usability.css";
 
 export const metadata: Metadata = {

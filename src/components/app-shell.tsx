@@ -4,13 +4,14 @@ import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import {
   AnalyticsIcon, BellIcon, FlameIcon, LogoIcon, LogoutIcon,
-  ProblemsIcon, SettingsIcon, TodayIcon,
+  PlansIcon, ProblemsIcon, SettingsIcon, TodayIcon,
 } from "./icons";
 import { signOut } from "@/app/auth/actions";
 import type { Reminder } from "@/lib/analytics";
 
 const navItems = [
   { href: "/today", label: "Today", icon: TodayIcon },
+  { href: "/plans", label: "Plans", icon: PlansIcon },
   { href: "/problems", label: "Questions", icon: ProblemsIcon },
   { href: "/analytics", label: "Analytics", icon: AnalyticsIcon },
   { href: "/settings", label: "Settings", icon: SettingsIcon },

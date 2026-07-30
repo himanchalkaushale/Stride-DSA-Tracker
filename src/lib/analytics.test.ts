@@ -15,7 +15,7 @@ function problem(id: string, topics: string[], difficulty: "easy" | "medium" | "
 
 function task(id: string, problemId: string, date: string, status: DailyTask["status"], source: DailyTask["source"] = "adaptive"): DailyTask {
   return {
-    id, user_id: "user", problem_id: problemId, task_date: date, position: 0, status, source,
+    id, user_id: "user", problem_id: problemId, plan_id: null, task_date: date, position: 0, status, source,
     completed_at: status === "completed" ? `${date}T10:00:00.000Z` : null, created_at: stamp, updated_at: stamp,
   };
 }

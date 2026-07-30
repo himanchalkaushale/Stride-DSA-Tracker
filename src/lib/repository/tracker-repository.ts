@@ -3,8 +3,10 @@ import type { Database } from "@/types/database";
 import { normalizeProblemTopics, normalizeTopics } from "@/lib/constants";
 import type {
   Attempt, AttemptInput, CustomProblemInput, DailyTask, OnboardingPreferences, Problem,
-  ProblemWithProgress, Profile, RevisionInput, SolutionRevision, UserProblem,
+  Plan, PlanWithTasks, ProblemWithProgress, Profile, RevisionInput, SolutionRevision, UserProblem,
 } from "@/types/models";
+import type { CsvPlanRow } from "@/lib/csv-plan";
+import { validateCapacity, validatePlanName } from "@/lib/plans";
 
 export interface TrackerRepository {
   getProfile(userId: string): Promise<Profile | null>;
@@ -26,6 +28,16 @@ export interface TrackerRepository {
   updateDailyTask(taskId: string, patch: Database["public"]["Tables"]["daily_tasks"]["Update"]): Promise<DailyTask>;
   updateDailyTaskForProblem(userId: string, problemId: string, taskDate: string, patch: Database["public"]["Tables"]["daily_tasks"]["Update"]): Promise<void>;
   deleteDailyTask(taskId: string): Promise<void>;
+  listPlans(userId: string): Promise<PlanWithTasks[]>;
+  getPlan(userId: string, planId: string): Promise<PlanWithTasks | null>;
+  createPlan(userId: string, name: string, capacity: number): Promise<Plan>;
+  importPlan(userId: string, name: string, filename: string, capacity: number, rows: CsvPlanRow[]): Promise<string>;
+  updatePlan(planId: string, patch: Database["public"]["Tables"]["plans"]["Update"]): Promise<Plan>;
+  adoptTasks(name: string, capacity: number, taskIds: string[]): Promise<string>;
+  shiftPlan(planId: string, fromDate: string, days: number): Promise<number>;
+  redistributePlan(planId: string, fromDate: string, startDate: string, capacity: number): Promise<number>;
+  removePlanTask(taskId: string): Promise<"deleted" | "detached">;
+  deletePlan(planId: string): Promise<void>;
   listRevisions(userId: string, problemId: string): Promise<SolutionRevision[]>;
   saveCurrentRevision(userId: string, problemId: string, input: RevisionInput): Promise<SolutionRevision>;
   createRevision(userId: string, problemId: string, input: RevisionInput): Promise<SolutionRevision>;
@@ -238,6 +250,118 @@ export class SupabaseTrackerRepository implements TrackerRepository {
 
   async deleteDailyTask(taskId: string) {
     const { error } = await this.db.from("daily_tasks").delete().eq("id", taskId);
+    if (error) throw error;
+  }
+
+  async listPlans(userId: string) {
+    const [{ data: plans, error: planError }, { data: tasks, error: taskError }, { data: problems, error: problemError }] = await Promise.all([
+      this.db.from("plans").select("*").eq("owner_id", userId).order("updated_at", { ascending: false }),
+      this.db.from("daily_tasks").select("*").eq("user_id", userId).not("plan_id", "is", null)
+        .order("task_date").order("position"),
+      this.db.from("problems").select("*"),
+    ]);
+    if (planError) throw planError;
+    if (taskError) throw taskError;
+    if (problemError) throw problemError;
+    const problemById = new Map((problems ?? []).map((problem) => [problem.id, problem]));
+    return (plans ?? []).map((plan) => ({
+      ...plan,
+      tasks: (tasks ?? []).filter((task) => task.plan_id === plan.id).map((task) => ({
+        ...task,
+        problem: problemById.get(task.problem_id),
+      })).filter((task) => !!task.problem),
+    })) as PlanWithTasks[];
+  }
+
+  async getPlan(userId: string, planId: string) {
+    const plans = await this.listPlans(userId);
+    return plans.find((plan) => plan.id === planId) ?? null;
+  }
+
+  async createPlan(_userId: string, name: string, capacity: number) {
+    const { data, error } = await this.db.rpc("create_practice_plan", {
+      p_name: validatePlanName(name),
+      p_origin: "manual",
+      p_daily_capacity: validateCapacity(capacity),
+    });
+    if (error) throw error;
+    return data;
+  }
+
+  async importPlan(_userId: string, name: string, filename: string, capacity: number, rows: CsvPlanRow[]) {
+    const positions = new Map<string, number>();
+    const entries = rows.map((row) => {
+      const position = positions.get(row.taskDate) ?? 0;
+      positions.set(row.taskDate, position + 1);
+      return {
+        task_date: row.taskDate,
+        position,
+        question: {
+          title: row.question.title,
+          description: row.question.description,
+          difficulty: row.question.difficulty,
+          topics: row.question.topics,
+          patterns: row.question.patterns,
+          source: row.question.source,
+          external_url: row.question.externalUrl,
+          estimated_minutes: row.question.estimatedMinutes,
+        },
+      };
+    });
+    const { data, error } = await this.db.rpc("import_practice_plan", {
+      p_name: validatePlanName(name),
+      p_source_filename: filename || null,
+      p_daily_capacity: validateCapacity(capacity),
+      p_entries: entries,
+    });
+    if (error) throw error;
+    return data;
+  }
+
+  async updatePlan(planId: string, patch: Database["public"]["Tables"]["plans"]["Update"]) {
+    const values = { ...patch };
+    if (values.name !== undefined) values.name = validatePlanName(values.name);
+    if (values.daily_capacity !== undefined) values.daily_capacity = validateCapacity(values.daily_capacity);
+    const { data, error } = await this.db.from("plans").update(values).eq("id", planId).select("*").single();
+    if (error) throw error;
+    return data;
+  }
+
+  async adoptTasks(name: string, capacity: number, taskIds: string[]) {
+    const { data, error } = await this.db.rpc("adopt_tasks_into_plan", {
+      p_name: validatePlanName(name),
+      p_daily_capacity: validateCapacity(capacity),
+      p_task_ids: taskIds,
+    });
+    if (error) throw error;
+    return data;
+  }
+
+  async shiftPlan(planId: string, fromDate: string, days: number) {
+    const { data, error } = await this.db.rpc("shift_plan_tasks", {
+      p_plan_id: planId, p_from_date: fromDate, p_days: days,
+    });
+    if (error) throw error;
+    return data;
+  }
+
+  async redistributePlan(planId: string, fromDate: string, startDate: string, capacity: number) {
+    const { data, error } = await this.db.rpc("redistribute_plan_tasks", {
+      p_plan_id: planId, p_from_date: fromDate, p_start_date: startDate,
+      p_capacity: validateCapacity(capacity),
+    });
+    if (error) throw error;
+    return data;
+  }
+
+  async removePlanTask(taskId: string) {
+    const { data, error } = await this.db.rpc("remove_plan_task", { p_task_id: taskId });
+    if (error) throw error;
+    return data as "deleted" | "detached";
+  }
+
+  async deletePlan(planId: string) {
+    const { error } = await this.db.rpc("delete_practice_plan", { p_plan_id: planId });
     if (error) throw error;
   }
 
