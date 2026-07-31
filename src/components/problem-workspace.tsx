@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/client";
 import { SupabaseTrackerRepository } from "@/lib/repository/tracker-repository";
 import { nextReviewAt } from "@/lib/planner";
 import { formatTimestamp } from "@/lib/date-format";
+import { safeHttpUrl } from "@/lib/url-security";
 import { Toast } from "@/components/toast";
 import type { AttemptResult, ProblemStatus } from "@/types/database";
 import type { Attempt, ProblemWithProgress, RevisionInput, SolutionRevision } from "@/types/models";
@@ -129,10 +130,11 @@ export function ProblemWorkspace({ userId, problem, initialAttempts, initialRevi
     setToast(finished ? "Attempt recorded, problem completed, and review scheduled." : "Attempt recorded and progress updated.");
   };
 
+  const externalUrl = safeHttpUrl(problem.external_url);
   return <div className="workspace-shell">
     <header className="workspace-header">
       <div><Link href="/problems" className="back-link">← Problem library</Link><div className="workspace-title"><h1>{problem.title}</h1><span className={`difficulty ${problem.difficulty}`}>{problem.difficulty}</span></div><p>{problem.source} · {problem.topics.join(" · ")} · {problem.estimated_minutes} min</p></div>
-      <div className="workspace-actions">{problem.external_url && <a className="button button-quiet" href={problem.external_url} target="_blank" rel="noreferrer">Open question ↗</a>}<span className={`save-status ${saveState}`}><i />{saveState === "saved" ? "Saved to cloud" : saveState === "saving" ? "Saving…" : saveState === "dirty" ? "Unsaved changes" : saveState === "offline" ? "Offline draft" : "Save failed"}</span><button className="button button-primary" onClick={() => setAttemptOpen(true)}>Record attempt</button></div>
+      <div className="workspace-actions">{externalUrl && <a className="button button-quiet" href={externalUrl} target="_blank" rel="noopener noreferrer">Open question ↗</a>}<span className={`save-status ${saveState}`}><i />{saveState === "saved" ? "Saved to cloud" : saveState === "saving" ? "Saving…" : saveState === "dirty" ? "Unsaved changes" : saveState === "offline" ? "Offline draft" : "Save failed"}</span><button className="button button-primary" onClick={() => setAttemptOpen(true)}>Record attempt</button></div>
     </header>
     {(offline || error) && <div className={`state-banner ${error ? "error" : "warning"}`} role={error ? "alert" : "status"}><span>{error ? "Save issue" : "Offline"}</span>{error || "Edits are preserved on this device and will sync after reconnection."}{error && <button onClick={() => setError("")}>Dismiss</button>}</div>}
     <div className="workspace-grid">

@@ -1,5 +1,10 @@
 import type { CustomProblemInput } from "@/types/models";
 import { normalizeTopics } from "./constants.ts";
+import { safeHttpUrl } from "./url-security.ts";
+
+export const MAX_CSV_FILE_BYTES = 1_000_000;
+export const MAX_CSV_ROWS = 5_000;
+export const MAX_CSV_CELL_LENGTH = 10_000;
 
 export interface CsvPlanRow {
   rowNumber: number;
@@ -60,6 +65,10 @@ function parseCsvCells(text: string): string[][] {
   row.push(cell.trim());
   if (row.some(Boolean)) rows.push(row);
   if (quoted) throw new Error("The CSV contains an unclosed quoted value.");
+  if (rows.length - 1 > MAX_CSV_ROWS) throw new Error(`The CSV cannot contain more than ${MAX_CSV_ROWS} questions.`);
+  if (rows.some((cells) => cells.some((value) => value.length > MAX_CSV_CELL_LENGTH))) {
+    throw new Error(`CSV values cannot exceed ${MAX_CSV_CELL_LENGTH.toLocaleString()} characters.`);
+  }
   return rows;
 }
 
@@ -114,6 +123,9 @@ function sourceFrom(link: string) {
 }
 
 export function parsePlanCsv(text: string, options: CsvPlanOptions): CsvPlanRow[] {
+  if (new TextEncoder().encode(text).byteLength > MAX_CSV_FILE_BYTES) {
+    throw new Error("The CSV file cannot exceed 1 MB.");
+  }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(options.startDate)) throw new Error("Choose a valid start date.");
   if (!Number.isInteger(options.questionsPerDay) || options.questionsPerDay < 1 || options.questionsPerDay > 20) {
     throw new Error("Questions per day must be between 1 and 20.");
@@ -145,15 +157,11 @@ export function parsePlanCsv(text: string, options: CsvPlanOptions): CsvPlanRow[
       return;
     }
 
-    const link = read(columns.link);
-    if (link) {
-      try {
-        const url = new URL(link);
-        if (!["http:", "https:"].includes(url.protocol)) throw new Error();
-      } catch {
-        errors.push(`Row ${rowNumber}: link must begin with http:// or https://.`);
-        return;
-      }
+    const rawLink = read(columns.link);
+    const link = safeHttpUrl(rawLink);
+    if (rawLink && !link) {
+      errors.push(`Row ${rowNumber}: link must be a valid HTTP(S) URL without embedded credentials.`);
+      return;
     }
 
     const minutesValue = read(columns.minutes);
@@ -182,7 +190,7 @@ export function parsePlanCsv(text: string, options: CsvPlanOptions): CsvPlanRow[
             ...(options.topicOverride ? csvTopics : []),
             ...list(read(columns.patterns)),
           ])],
-          source: read(columns.source) || sourceFrom(link),
+          source: read(columns.source) || sourceFrom(link ?? ""),
           externalUrl: link || null,
           estimatedMinutes: minutes,
         },

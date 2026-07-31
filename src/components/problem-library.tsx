@@ -7,6 +7,7 @@ import { SupabaseTrackerRepository } from "@/lib/repository/tracker-repository";
 import { Toast } from "@/components/toast";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { normalizeProblemTopics, normalizeTopic } from "@/lib/constants";
+import { safeHttpUrl } from "@/lib/url-security";
 import type { Difficulty, ProblemStatus } from "@/types/database";
 import type { CustomProblemInput, ProblemFilters, ProblemSort, ProblemView, ProblemWithProgress } from "@/types/models";
 
@@ -33,16 +34,10 @@ export function ProblemForm({ initial, onClose, onSave, submitLabel }: {
     event.preventDefault();
     if (value.title.trim().length < 2) return setError("Title must be at least 2 characters.");
     if (value.estimatedMinutes < 1 || value.estimatedMinutes > 600) return setError("Estimate must be between 1 and 600 minutes.");
-    if (value.externalUrl) {
-      try {
-        const url = new URL(value.externalUrl);
-        if (url.protocol !== "http:" && url.protocol !== "https:") throw new Error();
-      } catch {
-        return setError("Enter a valid link beginning with http:// or https://.");
-      }
-    }
+    const externalUrl = safeHttpUrl(value.externalUrl);
+    if (value.externalUrl && !externalUrl) return setError("Enter a valid HTTP(S) link without embedded credentials.");
     setSaving(true); setError("");
-    try { await onSave(value); onClose(); } catch (cause) {
+    try { await onSave({ ...value, externalUrl }); onClose(); } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not save this problem."); setSaving(false);
     }
   };
@@ -206,10 +201,11 @@ function StatusSelect({ problem, onProgress }: Pick<CardProps, "problem" | "onPr
   return <select aria-label={`Status for ${problem.title}`} value={problem.progress?.status ?? ""} onChange={(e) => onProgress(problem, { status: (e.target.value || "backlog") as ProblemStatus })}><option value="">Not added</option><option value="backlog">Backlog</option><option value="in_progress">In progress</option><option value="completed">Completed</option><option value="review_due">Review due</option><option value="archived">Archived</option></select>;
 }
 function ProblemCard({ problem, onProgress, onEdit, onDelete }: CardProps) {
+  const externalUrl = safeHttpUrl(problem.external_url);
   return <article className="problem-card panel"><div className="problem-card-top"><span className={`difficulty ${problem.difficulty}`}>{problem.difficulty}</span><button className={problem.progress?.bookmarked ? "bookmark active" : "bookmark"} onClick={() => onProgress(problem, { bookmarked: !problem.progress?.bookmarked })} title="Bookmark">★</button></div>
     <Link href={`/problems/${problem.id}`}><h2>{problem.title}</h2><p>{problem.description || `${problem.patterns[0] ?? "General"} practice from ${problem.source}.`}</p></Link>
     <div className="tag-list compact">{problem.topics.slice(0, 2).map((topic) => <span key={topic}>{topic}</span>)}{problem.patterns.slice(0, 1).map((pattern) => <span key={pattern}>{pattern}</span>)}</div>
-    {problem.external_url && <a className="problem-external-link" href={problem.external_url} target="_blank" rel="noreferrer">Open problem link ↗</a>}
+    {externalUrl && <a className="problem-external-link" href={externalUrl} target="_blank" rel="noopener noreferrer">Open problem link ↗</a>}
     <div className="problem-card-footer"><StatusSelect problem={problem} onProgress={onProgress} /><span>{problem.estimated_minutes} min</span>{problem.is_curated ? <button className="icon-action" onClick={() => onProgress(problem, { status: "backlog" })} title="Add to backlog">＋</button> : <span className="card-actions"><button onClick={onEdit}>Edit</button><button onClick={onDelete}>Delete</button></span>}</div>
   </article>;
 }

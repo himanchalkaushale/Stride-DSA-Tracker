@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { parsePlanCsv } from "./csv-plan.ts";
+import { MAX_CSV_FILE_BYTES, parsePlanCsv } from "./csv-plan.ts";
 
 describe("CSV monthly plan import", () => {
   it("distributes rows across days using the chosen daily count", () => {
@@ -37,7 +37,7 @@ describe("CSV monthly plan import", () => {
     assert.throws(() => parsePlanCsv("title,link\nBroken,leetcode.com/problem", {
       startDate: "2026-07-29",
       questionsPerDay: 2,
-    }), /http/);
+    }), /HTTP/);
   });
 
   it("assigns a parent topic while preserving CSV subtopics as patterns", () => {
@@ -48,5 +48,14 @@ describe("CSV monthly plan import", () => {
     });
     assert.deepEqual(rows[0].question.topics, ["Linked Lists"]);
     assert.deepEqual(rows[0].question.patterns, ["Advanced Reversal", "k-group"]);
+  });
+
+  it("rejects oversized files and credential-bearing links", () => {
+    assert.throws(() => parsePlanCsv(`title\n${"a".repeat(MAX_CSV_FILE_BYTES)}`, {
+      startDate: "2026-07-29", questionsPerDay: 2,
+    }), /1 MB/);
+    assert.throws(() => parsePlanCsv("title,link\nBad,https://user:secret@example.com/problem", {
+      startDate: "2026-07-29", questionsPerDay: 2,
+    }), /credentials/);
   });
 });

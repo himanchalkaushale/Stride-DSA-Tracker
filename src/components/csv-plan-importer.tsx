@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { PLAN_CSV_TEMPLATE, parsePlanCsv, type CsvPlanRow } from "@/lib/csv-plan";
+import { MAX_CSV_FILE_BYTES, PLAN_CSV_TEMPLATE, parsePlanCsv, type CsvPlanRow } from "@/lib/csv-plan";
 import { TOPICS } from "@/lib/constants";
 import { SupabaseTrackerRepository } from "@/lib/repository/tracker-repository";
 import { createClient } from "@/lib/supabase/client";
@@ -47,7 +47,17 @@ export function CsvPlanImporter({
       setError("Choose a file ending in .csv.");
       return;
     }
-    const text = await file.text();
+    if (file.size > MAX_CSV_FILE_BYTES) {
+      setError("The CSV file cannot exceed 1 MB.");
+      return;
+    }
+    let text: string;
+    try {
+      text = await file.text();
+    } catch {
+      setError("The CSV file could not be read.");
+      return;
+    }
     const detectedTopic = /linked[\s_-]*lists?/i.test(file.name) ? "Linked Lists" : "";
     setCsvText(text);
     setFileName(file.name);

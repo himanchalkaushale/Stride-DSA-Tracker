@@ -8,6 +8,7 @@ import type {
 import type { CsvPlanRow } from "@/lib/csv-plan";
 import { validateCapacity, validatePlanName } from "@/lib/plans";
 import { completionPatch, validateTodoInput } from "@/lib/todos";
+import { safeHttpUrl } from "@/lib/url-security";
 
 function isMissingTodosTable(error: unknown) {
   if (!error || typeof error !== "object") return false;
@@ -103,7 +104,15 @@ export class SupabaseTrackerRepository implements TrackerRepository {
 
   async updateProfile(userId: string, patch: Database["public"]["Tables"]["profiles"]["Update"]) {
     const { data, error } = await this.db.from("profiles").update({
-      ...patch,
+      display_name: patch.display_name,
+      avatar_url: patch.avatar_url,
+      timezone: patch.timezone,
+      daily_target: patch.daily_target,
+      preferred_languages: patch.preferred_languages,
+      active_topics: patch.active_topics,
+      difficulty_min: patch.difficulty_min,
+      difficulty_max: patch.difficulty_max,
+      onboarding_complete: patch.onboarding_complete,
       updated_at: new Date().toISOString(),
     }).eq("id", userId).select("*").single();
     if (error) throw error;
@@ -154,6 +163,8 @@ export class SupabaseTrackerRepository implements TrackerRepository {
   async createProblems(userId: string, inputs: CustomProblemInput[]) {
     if (!inputs.length) return [];
     const values = inputs.map((input, index) => {
+      const externalUrl = safeHttpUrl(input.externalUrl);
+      if (input.externalUrl && !externalUrl) throw new Error("Problem links must use HTTP(S) and cannot contain credentials.");
       const baseSlug = input.title.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "problem";
       return {
         owner_id: userId,
@@ -164,7 +175,7 @@ export class SupabaseTrackerRepository implements TrackerRepository {
         topics: normalizeTopics(input.topics),
         patterns: input.patterns,
         source: input.source.trim() || "custom",
-        external_url: input.externalUrl,
+        external_url: externalUrl,
         estimated_minutes: input.estimatedMinutes,
         is_curated: false,
       };
@@ -176,6 +187,8 @@ export class SupabaseTrackerRepository implements TrackerRepository {
   }
 
   async updateProblem(problemId: string, input: CustomProblemInput) {
+    const externalUrl = safeHttpUrl(input.externalUrl);
+    if (input.externalUrl && !externalUrl) throw new Error("Problem links must use HTTP(S) and cannot contain credentials.");
     const { data, error } = await this.db.from("problems").update({
       title: input.title.trim(),
       description: input.description,
@@ -183,7 +196,7 @@ export class SupabaseTrackerRepository implements TrackerRepository {
       topics: normalizeTopics(input.topics),
       patterns: input.patterns,
       source: input.source.trim() || "custom",
-      external_url: input.externalUrl,
+      external_url: externalUrl,
       estimated_minutes: input.estimatedMinutes,
     }).eq("id", problemId).eq("is_curated", false).select("*").single();
     if (error) throw error;
@@ -206,7 +219,13 @@ export class SupabaseTrackerRepository implements TrackerRepository {
     const { data, error } = await this.db.from("user_problems").upsert({
       user_id: userId,
       problem_id: problemId,
-      ...patch,
+      status: patch.status,
+      bookmarked: patch.bookmarked,
+      confidence: patch.confidence,
+      priority: patch.priority,
+      first_started_at: patch.first_started_at,
+      completed_at: patch.completed_at,
+      next_review_at: patch.next_review_at,
       last_activity_at: now,
       updated_at: now,
     }, { onConflict: "user_id,problem_id" }).select("*").single();
@@ -257,7 +276,12 @@ export class SupabaseTrackerRepository implements TrackerRepository {
 
   async updateDailyTask(taskId: string, patch: Database["public"]["Tables"]["daily_tasks"]["Update"]) {
     const { data, error } = await this.db.from("daily_tasks").update({
-      ...patch,
+      plan_id: patch.plan_id,
+      task_date: patch.task_date,
+      position: patch.position,
+      status: patch.status,
+      source: patch.source,
+      completed_at: patch.completed_at,
       updated_at: new Date().toISOString(),
     }).eq("id", taskId).select("*").single();
     if (error) throw error;
@@ -266,7 +290,12 @@ export class SupabaseTrackerRepository implements TrackerRepository {
 
   async updateDailyTaskForProblem(userId: string, problemId: string, taskDate: string, patch: Database["public"]["Tables"]["daily_tasks"]["Update"]) {
     const { error } = await this.db.from("daily_tasks").update({
-      ...patch,
+      plan_id: patch.plan_id,
+      task_date: patch.task_date,
+      position: patch.position,
+      status: patch.status,
+      source: patch.source,
+      completed_at: patch.completed_at,
       updated_at: new Date().toISOString(),
     }).eq("user_id", userId).eq("problem_id", problemId).eq("task_date", taskDate);
     if (error) throw error;
@@ -386,9 +415,9 @@ export class SupabaseTrackerRepository implements TrackerRepository {
   }
 
   async updatePlan(planId: string, patch: Database["public"]["Tables"]["plans"]["Update"]) {
-    const values = { ...patch };
-    if (values.name !== undefined) values.name = validatePlanName(values.name);
-    if (values.daily_capacity !== undefined) values.daily_capacity = validateCapacity(values.daily_capacity);
+    const values: Database["public"]["Tables"]["plans"]["Update"] = {};
+    if (patch.name !== undefined) values.name = validatePlanName(patch.name);
+    if (patch.daily_capacity !== undefined) values.daily_capacity = validateCapacity(patch.daily_capacity);
     const { data, error } = await this.db.from("plans").update(values).eq("id", planId).select("*").single();
     if (error) throw error;
     return data;

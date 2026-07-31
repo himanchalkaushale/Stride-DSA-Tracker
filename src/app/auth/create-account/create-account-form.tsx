@@ -27,8 +27,9 @@ export function CreateAccountForm() {
           id="password"
           name="password"
           type="password"
-          minLength={8}
-          placeholder="At least 8 characters"
+          minLength={12}
+          maxLength={128}
+          placeholder="12 to 128 characters"
           autoComplete="new-password"
           required
         />
@@ -37,7 +38,8 @@ export function CreateAccountForm() {
           id="confirmation"
           name="confirmation"
           type="password"
-          minLength={8}
+          minLength={12}
+          maxLength={128}
           placeholder="Enter it again"
           autoComplete="new-password"
           required

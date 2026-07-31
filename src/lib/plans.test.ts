@@ -59,4 +59,21 @@ describe("practice plans", () => {
     assert.match(csv, /"Merge, ""Sort"""/);
     assert.match(csv, /"line 1\nline 2"/);
   });
+
+  it("neutralizes spreadsheet formulas in exported user content", () => {
+    const base = task("a", "2026-08-01");
+    const csv = exportPlanCsv({
+      id: "plan", owner_id: "user", name: "Plan", origin: "csv", source_filename: "x.csv",
+      daily_capacity: 2, created_at: stamp, updated_at: stamp,
+    }, [{ ...base, problem: {
+      id: "problem-a", owner_id: "user", title: "=HYPERLINK(\"https://evil.test\")", slug: "formula",
+      description: "+CMD", difficulty: "medium", topics: ["@SUM(A1:A2)"], patterns: ["-2+3"],
+      source: "Custom", external_url: null, estimated_minutes: 30, is_curated: false,
+      created_at: stamp, updated_at: stamp,
+    } }]);
+    assert.match(csv, /'@SUM\(A1:A2\)/);
+    assert.match(csv, /'-2\+3/);
+    assert.match(csv, /"'=HYPERLINK\(""https:\/\/evil\.test""\)"/);
+    assert.match(csv, /'\+CMD/);
+  });
 });
