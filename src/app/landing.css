@@ -1,4 +1,36 @@
 .lp {
+  /* The public landing experience is intentionally dark in every OS/app theme. */
+  --bg: #090d12;
+  --bg-ambient: radial-gradient(circle at 82% 5%, rgba(154, 140, 255, .075), transparent 30%), radial-gradient(circle at 15% 35%, rgba(61, 214, 180, .055), transparent 28%), #090d12;
+  --surface: #10171b;
+  --surface-2: #152027;
+  --surface-3: #1b2931;
+  --surface-elevated: #1a262d;
+  --surface-input: #0d1519;
+  --surface-hover: rgba(243, 247, 245, .055);
+  --surface-selected: rgba(168, 240, 90, .11);
+  --line: rgba(219, 236, 230, .10);
+  --line-strong: rgba(219, 236, 230, .18);
+  --text: #f3f7f5;
+  --text-soft: #c2cfca;
+  --muted: #8fa29b;
+  --muted-2: #687b74;
+  --lime: #a8f05a;
+  --lime-hover: #b8f676;
+  --lime-ink: #15230d;
+  --lime-soft: rgba(168, 240, 90, .11);
+  --teal: #3dd6b4;
+  --teal-soft: rgba(61, 214, 180, .11);
+  --blue: #67b7f7;
+  --blue-soft: rgba(103, 183, 247, .11);
+  --violet: #9a8cff;
+  --violet-soft: rgba(154, 140, 255, .11);
+  --orange: #f2b45f;
+  --orange-soft: rgba(242, 180, 95, .11);
+  --red: #ff8177;
+  --red-soft: rgba(255, 129, 119, .11);
+  --shadow: rgba(0, 0, 0, .32);
+  --shadow-strong: rgba(0, 0, 0, .52);
   --lp-ink: var(--text);
   --lp-dim: var(--muted);
   --lp-card: var(--surface);
@@ -7,6 +39,7 @@
   overflow: hidden;
   background: var(--bg-ambient);
   color: var(--lp-ink);
+  color-scheme: dark;
 }
 
 .lp *, .lp *::before, .lp *::after { box-sizing: border-box; }
@@ -307,18 +340,3 @@
 .lp-closing{background:radial-gradient(circle at 50% 50%,var(--violet-soft),transparent 31%),linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:auto,80px 80px,80px 80px}
 .lp-float-card{border-color:var(--line-strong);background:color-mix(in srgb,var(--surface-elevated) 93%,transparent);box-shadow:0 20px 50px var(--shadow)}
 .lp-window{border-color:color-mix(in srgb,var(--text) 20%,transparent);box-shadow:0 50px 110px var(--shadow-strong)}
-
-[data-theme="light"] .lp-hero::before{opacity:.24}
-[data-theme="light"] .lp-window{background:#0d1115}
-[data-theme="light"] .lp-window-bar{border-color:rgba(226,237,232,.12);color:#7d8a85}
-[data-theme="light"] .lp-orbit-core{background:radial-gradient(circle,var(--lime-soft),color-mix(in srgb,var(--surface) 90%,transparent) 67%)}
-[data-theme="light"] .lp-orbit-node{border-color:var(--line);background:color-mix(in srgb,var(--surface) 92%,transparent);box-shadow:0 10px 30px var(--shadow)}
-[data-theme="light"] .lp-orbit-node strong{color:var(--text)}
-[data-theme="light"] .lp-loop-grid small{color:var(--muted)}
-[data-theme="light"] .lp-code-lines{background:#0e1418}
-[data-theme="light"] .lp-code-lines code{color:#c6d2ce}
-[data-theme="light"] .lp-hero,
-[data-theme="light"] .lp-loop::before,
-[data-theme="light"] .lp-closing{background-image:radial-gradient(circle at 73% 34%,var(--teal-soft),transparent 27%),linear-gradient(color-mix(in srgb,var(--line) 58%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--line) 58%,transparent) 1px,transparent 1px)}
-[data-theme="light"] .lp-loop::before{background-image:radial-gradient(circle at 72% 19%,var(--violet-soft),transparent 34%),linear-gradient(color-mix(in srgb,var(--line) 58%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--line) 58%,transparent) 1px,transparent 1px)}
-[data-theme="light"] .lp-closing{background-image:radial-gradient(circle at 50% 50%,var(--violet-soft),transparent 31%),linear-gradient(color-mix(in srgb,var(--line) 58%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--line) 58%,transparent) 1px,transparent 1px)}
