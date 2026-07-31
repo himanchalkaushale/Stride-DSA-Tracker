@@ -7,10 +7,11 @@ import { CsvPlanImporter } from "@/components/csv-plan-importer";
 import { SupabaseTrackerRepository } from "@/lib/repository/tracker-repository";
 import { createClient } from "@/lib/supabase/client";
 import { summarizePlan } from "@/lib/plans";
+import { formatDateKey } from "@/lib/date-format";
 import type { DailyTask, PlanWithTasks, ProblemWithProgress } from "@/types/models";
 
 function displayDate(date: string | null) {
-  return date ? new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "No entries";
+  return date ? formatDateKey(date, { month: "short", day: "numeric", year: "numeric" }) : "No entries";
 }
 
 export function PlansDashboard({

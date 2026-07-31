@@ -14,4 +14,15 @@ begin;
 -- select count(*) from public.user_problems; -- expected: 0 for user B
 -- update public.user_problems set bookmarked = true where user_id = 'USER_A_UUID'; -- expected: 0 rows
 
+-- Todo ownership checks:
+-- set local request.jwt.claim.sub = 'USER_A_UUID';
+-- insert into public.todos (user_id, title, todo_date)
+-- values ('USER_A_UUID', 'Private task', current_date);
+-- select count(*) from public.todos; -- expected: 1 for user A
+--
+-- set local request.jwt.claim.sub = 'USER_B_UUID';
+-- select count(*) from public.todos; -- expected: 0 for user B
+-- update public.todos set title = 'Changed' where user_id = 'USER_A_UUID'; -- expected: 0 rows
+-- delete from public.todos where user_id = 'USER_A_UUID'; -- expected: 0 rows
+
 rollback;

@@ -10,9 +10,11 @@ import { java } from "@codemirror/lang-java";
 import { createClient } from "@/lib/supabase/client";
 import { SupabaseTrackerRepository } from "@/lib/repository/tracker-repository";
 import { nextReviewAt } from "@/lib/planner";
+import { formatTimestamp } from "@/lib/date-format";
 import { Toast } from "@/components/toast";
 import type { AttemptResult, ProblemStatus } from "@/types/database";
 import type { Attempt, ProblemWithProgress, RevisionInput, SolutionRevision } from "@/types/models";
+import { useTheme } from "@/components/theme-provider";
 
 const languages = ["TypeScript", "JavaScript", "Python", "Java", "C++", "Go"];
 const snippets: Record<string, string> = {
@@ -25,10 +27,11 @@ const snippets: Record<string, string> = {
 };
 const extensionFor = (language: string) => language === "Python" ? python() : language === "Java" ? java() : language === "C++" ? cpp() : language === "Go" ? [] : javascript({ typescript: language === "TypeScript" });
 
-export function ProblemWorkspace({ userId, problem, initialAttempts, initialRevisions, localDate, preferredLanguage }: {
-  userId: string; problem: ProblemWithProgress; initialAttempts: Attempt[]; initialRevisions: SolutionRevision[]; localDate: string; preferredLanguage: string;
+export function ProblemWorkspace({ userId, problem, initialAttempts, initialRevisions, localDate, preferredLanguage, timeZone }: {
+  userId: string; problem: ProblemWithProgress; initialAttempts: Attempt[]; initialRevisions: SolutionRevision[]; localDate: string; preferredLanguage: string; timeZone: string;
 }) {
   const repository = useMemo(() => new SupabaseTrackerRepository(createClient()), []);
+  const { theme } = useTheme();
   const initial = initialRevisions.find((revision) => revision.is_current) ?? initialRevisions[0];
   const startingLanguage = initial?.language ?? preferredLanguage;
   const [language, setLanguage] = useState(startingLanguage);
@@ -136,7 +139,7 @@ export function ProblemWorkspace({ userId, problem, initialAttempts, initialRevi
       <section className="editor-column">
         <div className="editor-panel panel">
           <div className="editor-toolbar"><div><span>Solution</span><select value={language} onChange={(e) => changeLanguage(e.target.value)}>{languages.map((item) => <option key={item}>{item}</option>)}</select></div><button className="text-button" onClick={saveNewRevision}>＋ New revision</button></div>
-          <CodeMirror value={draft.code} height="520px" extensions={[extensionFor(language)]} onChange={(code) => updateDraft({ code })} theme="dark" basicSetup={{ lineNumbers: true, foldGutter: true, highlightActiveLine: true }} />
+          <CodeMirror value={draft.code} height="520px" extensions={[extensionFor(language)]} onChange={(code) => updateDraft({ code })} theme={theme} basicSetup={{ lineNumbers: true, foldGutter: true, highlightActiveLine: true }} />
         </div>
         <div className="notes-grid">
           <label className="panel note-field"><span>Approach</span><textarea rows={7} value={draft.approachNotes} onChange={(e) => updateDraft({ approachNotes: e.target.value })} placeholder="Describe the core idea, invariants, and edge cases…" /></label>
@@ -145,8 +148,8 @@ export function ProblemWorkspace({ userId, problem, initialAttempts, initialRevi
       </section>
       <aside className="workspace-sidebar">
         <section className="panel workspace-section"><div className="section-title"><span>Progress</span><small>Autosaved separately</small></div><label>Status<select value={status} onChange={(e) => updateProgress({ status: e.target.value as ProblemStatus })}><option value="backlog">Backlog</option><option value="in_progress">In progress</option><option value="completed">Completed</option><option value="review_due">Review due</option><option value="archived">Archived</option></select></label><span className="field-caption">Confidence</span><div className="confidence-buttons">{[1, 2, 3, 4, 5].map((level) => <button className={confidence === level ? "active" : ""} key={level} onClick={() => updateProgress({ confidence: level })}>{level}</button>)}</div><div className="complexity-grid"><label>Time complexity<input value={draft.timeComplexity ?? ""} onChange={(e) => updateDraft({ timeComplexity: e.target.value || null })} placeholder="O(n)" /></label><label>Space complexity<input value={draft.spaceComplexity ?? ""} onChange={(e) => updateDraft({ spaceComplexity: e.target.value || null })} placeholder="O(1)" /></label></div></section>
-        <section className="panel workspace-section"><button className="section-title clickable" onClick={() => setHistoryOpen(!historyOpen)}><span>Solution history</span><small>{revisions.length} revisions {historyOpen ? "⌃" : "⌄"}</small></button>{historyOpen && <div className="history-list">{revisions.length ? revisions.map((revision, index) => <div key={revision.id}><span><b>{revision.language} {revision.is_current && <em>Current</em>}</b><small>{new Date(revision.updated_at).toLocaleString()}</small></span><button onClick={() => restoreRevision(revision)}>{index === 0 && revision.is_current ? "Load" : "Restore"}</button></div>) : <p className="mini-empty">Your first autosave creates a revision.</p>}</div>}</section>
-        <section className="panel workspace-section"><div className="section-title"><span>Attempt history</span><small>{attempts.length} total</small></div><div className="attempt-list">{attempts.length ? attempts.map((attempt) => <div key={attempt.id}><span className={`attempt-result ${attempt.result}`}>{attempt.result}</span><span><b>{attempt.duration_minutes} min · {attempt.language}</b><small>{new Date(attempt.attempted_at).toLocaleString()}{attempt.confidence ? ` · Confidence ${attempt.confidence}/5` : ""}</small>{attempt.notes && <p>{attempt.notes}</p>}</span></div>) : <p className="mini-empty">No attempts yet. Record one when you finish a session.</p>}</div></section>
+        <section className="panel workspace-section"><button className="section-title clickable" onClick={() => setHistoryOpen(!historyOpen)}><span>Solution history</span><small>{revisions.length} revisions {historyOpen ? "⌃" : "⌄"}</small></button>{historyOpen && <div className="history-list">{revisions.length ? revisions.map((revision, index) => <div key={revision.id}><span><b>{revision.language} {revision.is_current && <em>Current</em>}</b><small>{formatTimestamp(revision.updated_at, timeZone)}</small></span><button onClick={() => restoreRevision(revision)}>{index === 0 && revision.is_current ? "Load" : "Restore"}</button></div>) : <p className="mini-empty">Your first autosave creates a revision.</p>}</div>}</section>
+        <section className="panel workspace-section"><div className="section-title"><span>Attempt history</span><small>{attempts.length} total</small></div><div className="attempt-list">{attempts.length ? attempts.map((attempt) => <div key={attempt.id}><span className={`attempt-result ${attempt.result}`}>{attempt.result}</span><span><b>{attempt.duration_minutes} min · {attempt.language}</b><small>{formatTimestamp(attempt.attempted_at, timeZone)}{attempt.confidence ? ` · Confidence ${attempt.confidence}/5` : ""}</small>{attempt.notes && <p>{attempt.notes}</p>}</span></div>) : <p className="mini-empty">No attempts yet. Record one when you finish a session.</p>}</div></section>
       </aside>
     </div>
     {attemptOpen && <AttemptForm onClose={() => setAttemptOpen(false)} onSave={recordAttempt} />}

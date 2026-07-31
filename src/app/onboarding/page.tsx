@@ -4,6 +4,7 @@ import { TOPICS, LANGUAGES } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { completeOnboarding } from "./actions";
+import { ThemeMenu } from "@/components/theme-control";
 
 export default async function OnboardingPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   if (!isSupabaseConfigured) redirect("/auth?error=Supabase+is+not+configured");
@@ -19,7 +20,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
 
   return (
     <main className="onboarding-page">
-      <header><span className="brand"><span><LogoIcon /></span>stride</span><small>SET UP YOUR WORKSPACE</small></header>
+      <header><span className="brand"><span><LogoIcon /></span>stride</span><div className="onboarding-top-actions"><small>SET UP YOUR WORKSPACE</small><ThemeMenu /></div></header>
       <form action={completeOnboarding} className="onboarding-card">
         <div className="step-label">01 <span /> 03</div>
         <h1>Make it yours.</h1>

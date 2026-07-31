@@ -167,6 +167,26 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["solution_revisions"]["Row"]>;
         Relationships: [];
       };
+      todos: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          notes: string | null;
+          todo_date: string;
+          is_completed: boolean;
+          completed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["todos"]["Row"]> & {
+          user_id: string;
+          title: string;
+          todo_date: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["todos"]["Row"]>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {

@@ -3,10 +3,29 @@ import type { Database } from "@/types/database";
 import { normalizeProblemTopics, normalizeTopics } from "@/lib/constants";
 import type {
   Attempt, AttemptInput, CustomProblemInput, DailyTask, OnboardingPreferences, Problem,
-  Plan, PlanWithTasks, ProblemWithProgress, Profile, RevisionInput, SolutionRevision, UserProblem,
+  Plan, PlanWithTasks, ProblemWithProgress, Profile, RevisionInput, SolutionRevision, Todo, TodoInput, UserProblem,
 } from "@/types/models";
 import type { CsvPlanRow } from "@/lib/csv-plan";
 import { validateCapacity, validatePlanName } from "@/lib/plans";
+import { completionPatch, validateTodoInput } from "@/lib/todos";
+
+function isMissingTodosTable(error: unknown) {
+  if (!error || typeof error !== "object") return false;
+  const { code, message } = error as { code?: unknown; message?: unknown };
+  return code === "42P01"
+    || code === "PGRST205"
+    || (typeof message === "string" && message.includes("public.todos"));
+}
+
+function todoRepositoryError(error: unknown) {
+  if (isMissingTodosTable(error)) {
+    return new Error("Todos require supabase/migrations/0006_todos.sql to be applied to the connected Supabase project.");
+  }
+  if (error && typeof error === "object" && "message" in error && typeof error.message === "string") {
+    return new Error(error.message);
+  }
+  return error instanceof Error ? error : new Error("The todo request failed.");
+}
 
 export interface TrackerRepository {
   getProfile(userId: string): Promise<Profile | null>;
@@ -41,6 +60,11 @@ export interface TrackerRepository {
   listRevisions(userId: string, problemId: string): Promise<SolutionRevision[]>;
   saveCurrentRevision(userId: string, problemId: string, input: RevisionInput): Promise<SolutionRevision>;
   createRevision(userId: string, problemId: string, input: RevisionInput): Promise<SolutionRevision>;
+  listTodos(userId: string, todoDate?: string): Promise<Todo[]>;
+  createTodo(userId: string, input: TodoInput): Promise<Todo>;
+  updateTodo(todoId: string, input: TodoInput): Promise<Todo>;
+  setTodoCompleted(todoId: string, completed: boolean): Promise<Todo>;
+  deleteTodo(todoId: string): Promise<void>;
 }
 
 export class SupabaseTrackerRepository implements TrackerRepository {
@@ -251,6 +275,49 @@ export class SupabaseTrackerRepository implements TrackerRepository {
   async deleteDailyTask(taskId: string) {
     const { error } = await this.db.from("daily_tasks").delete().eq("id", taskId);
     if (error) throw error;
+  }
+
+  async listTodos(userId: string, todoDate?: string) {
+    let query = this.db.from("todos").select("*").eq("user_id", userId);
+    if (todoDate) query = query.eq("todo_date", todoDate);
+    const { data, error } = await query
+      .order("is_completed", { ascending: true })
+      .order("created_at", { ascending: true });
+    // Keep the rest of the dashboard available during a rolling deployment where
+    // the application has been updated before the todos migration is applied.
+    if (isMissingTodosTable(error)) return [];
+    if (error) throw todoRepositoryError(error);
+    return data;
+  }
+
+  async createTodo(userId: string, input: TodoInput) {
+    const value = validateTodoInput(input);
+    const { data, error } = await this.db.from("todos").insert({
+      user_id: userId, title: value.title, notes: value.notes, todo_date: value.todoDate,
+    }).select("*").single();
+    if (error) throw todoRepositoryError(error);
+    return data;
+  }
+
+  async updateTodo(todoId: string, input: TodoInput) {
+    const value = validateTodoInput(input);
+    const { data, error } = await this.db.from("todos").update({
+      title: value.title, notes: value.notes, todo_date: value.todoDate,
+    }).eq("id", todoId).select("*").single();
+    if (error) throw todoRepositoryError(error);
+    return data;
+  }
+
+  async setTodoCompleted(todoId: string, completed: boolean) {
+    const { data, error } = await this.db.from("todos").update(completionPatch(completed))
+      .eq("id", todoId).select("*").single();
+    if (error) throw todoRepositoryError(error);
+    return data;
+  }
+
+  async deleteTodo(todoId: string) {
+    const { error } = await this.db.from("todos").delete().eq("id", todoId);
+    if (error) throw todoRepositoryError(error);
   }
 
   async listPlans(userId: string) {

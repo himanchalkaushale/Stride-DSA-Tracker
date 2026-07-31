@@ -7,6 +7,7 @@ export type DailyTask = Database["public"]["Tables"]["daily_tasks"]["Row"];
 export type Plan = Database["public"]["Tables"]["plans"]["Row"];
 export type Attempt = Database["public"]["Tables"]["attempts"]["Row"];
 export type SolutionRevision = Database["public"]["Tables"]["solution_revisions"]["Row"];
+export type Todo = Database["public"]["Tables"]["todos"]["Row"];
 
 export interface ProblemWithProgress extends Problem {
   progress: UserProblem | null;
@@ -68,4 +69,10 @@ export interface AttemptInput {
   durationMinutes: number;
   confidence: number | null;
   notes: string | null;
+}
+
+export interface TodoInput {
+  title: string;
+  notes: string | null;
+  todoDate: string;
 }

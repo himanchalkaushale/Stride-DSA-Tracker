@@ -11,6 +11,7 @@ import {
 } from "@/components/icons";
 import { PracticeLoop } from "@/components/practice-loop";
 import analyticsImage from "../../docs/images/stride-analytics.png";
+import { ThemeMenu } from "@/components/theme-control";
 
 function Brand() {
   return (
@@ -38,7 +39,7 @@ export default function LandingPage() {
             <a href="#product">Product</a>
             <a href="#workflow">Workflow</a>
           </div>
-          <Link href="/auth" className="lp-sign-in">Sign in <ArrowIcon /></Link>
+          <div className="lp-nav-actions"><ThemeMenu /><Link href="/auth" className="lp-sign-in">Sign in <ArrowIcon /></Link></div>
         </nav>
       </header>
 

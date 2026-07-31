@@ -7,6 +7,7 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 import { ProblemForm } from "@/components/problem-library";
 import { Toast } from "@/components/toast";
 import { nextReviewAt } from "@/lib/planner";
+import { formatDateKey } from "@/lib/date-format";
 import { exportPlanCsv, previewRedistribution, previewShift, sortPlanTasks, summarizePlan } from "@/lib/plans";
 import { SupabaseTrackerRepository } from "@/lib/repository/tracker-repository";
 import { createClient } from "@/lib/supabase/client";
@@ -239,7 +240,7 @@ export function PlanDetail({
           {dates.map((date) => {
             const day = ordered.filter((task) => task.task_date === date);
             return <section className="panel plan-day" key={date}>
-              <header><div><time>{new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}</time><small>{day.length} {day.length === 1 ? "entry" : "entries"}</small></div></header>
+              <header><div><time>{formatDateKey(date, { weekday: "long", month: "long", day: "numeric" })}</time><small>{day.length} {day.length === 1 ? "entry" : "entries"}</small></div></header>
               {day.map((task, index) => <article className={`plan-entry ${task.status}`} key={task.id}>
                 <div className="task-order"><button disabled={index === 0 || busy === task.id} onClick={() => reorder(task, -1)} aria-label={`Move ${task.problem.title} up`}>↑</button><button disabled={index === day.length - 1 || busy === task.id} onClick={() => reorder(task, 1)} aria-label={`Move ${task.problem.title} down`}>↓</button></div>
                 <div className="plan-entry-copy"><Link href={`/problems/${task.problem_id}`}>{task.problem.title}</Link><span><i className={`difficulty ${task.problem.difficulty}`}>{task.problem.difficulty}</i>{task.problem.topics.join(", ") || "No topic"} · {task.problem.estimated_minutes} min</span></div>

@@ -5,6 +5,7 @@ import { LANGUAGES, TOPICS } from "@/lib/constants";
 import { SupabaseTrackerRepository } from "@/lib/repository/tracker-repository";
 import { createClient } from "@/lib/supabase/client";
 import type { Difficulty } from "@/types/database";
+import { AppearanceSettings } from "./theme-control";
 import type { Profile } from "@/types/models";
 
 const timezones = [
@@ -51,6 +52,7 @@ export function PlannerSettings({ userId, email, initialProfile }: {
   };
 
   return <section className="panel settings-panel">
+    <AppearanceSettings />
     <div className="settings-section"><div><h2>Profile</h2><p>Your personal workspace identity.</p></div><div className="settings-fields"><label><span>Display name</span><input value={profile.display_name} onChange={(event) => setProfile({ ...profile, display_name: event.target.value })} /></label><label><span>Email</span><input value={email} title={email} readOnly /></label></div></div>
     <div className="settings-section"><div><h2>Daily plan</h2><p>Set your target, then choose and order every question manually on the Today page.</p></div><div className="settings-fields two">
       <label><span>Daily target</span><input type="number" min="1" max="8" value={profile.daily_target} onChange={(event) => setProfile({ ...profile, daily_target: Number(event.target.value) })} /></label>

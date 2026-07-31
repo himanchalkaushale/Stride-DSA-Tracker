@@ -1,0 +1,45 @@
+.todos-page{max-width:1100px}
+.todo-datebar{display:flex;align-items:center;gap:10px;padding:13px 15px;margin-bottom:14px}
+.todo-datebar label{display:flex;align-items:center;gap:9px}
+.todo-datebar label>span,.todo-form label>span{font-size:10px;font-weight:700;color:var(--muted)}
+.todo-datebar input,.todo-form input,.todo-form textarea,.todo-quick-add input{
+  border:1px solid var(--line-strong);border-radius:8px;background:var(--surface);color:var(--text);
+  font:inherit;outline:none;transition:border-color .15s,box-shadow .15s
+}
+.todo-datebar input{height:36px;padding:0 10px;color-scheme:dark}
+.todo-datebar input:focus,.todo-form input:focus,.todo-form textarea:focus,.todo-quick-add input:focus{border-color:color-mix(in srgb,var(--lime) 50%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--lime) 7%,transparent)}
+.todo-datebar .icon-button{width:36px;height:36px;display:grid;place-items:center;border:1px solid var(--line-strong);border-radius:8px;background:transparent;color:var(--muted)}
+.todo-datebar .icon-button svg{width:16px}.todo-datebar .previous svg{transform:rotate(180deg)}
+.todo-date-summary{margin-left:auto;text-align:right;display:flex;flex-direction:column;gap:2px}
+.todo-date-summary b{font-size:12px}.todo-date-summary small{font-size:10px;color:var(--muted)}
+.todo-overdue-banner{width:100%;margin-bottom:14px;padding:12px 14px;display:flex;align-items:center;gap:11px;text-align:left;border:1px solid color-mix(in srgb,var(--orange) 20%,transparent);border-radius:10px;background:color-mix(in srgb,var(--orange) 6%,transparent);color:var(--orange)}
+.todo-overdue-banner>svg{width:18px;flex:0 0 auto}.todo-overdue-banner>svg:last-child{margin-left:auto;width:14px}
+.todo-overdue-banner span{display:flex;flex-direction:column;gap:2px}.todo-overdue-banner b{font-size:11px}.todo-overdue-banner small{font-size:9px;opacity:.8}
+.todos-layout{display:grid;grid-template-columns:minmax(260px,.72fr) minmax(0,1.28fr);gap:14px;align-items:start}
+.todo-form,.todo-list-panel{padding:20px}.todo-form{display:flex;flex-direction:column;gap:15px;position:sticky;top:76px}
+.todo-form label{display:flex;flex-direction:column;gap:7px}.todo-form label span{display:flex;justify-content:space-between}.todo-form label small{font-weight:400}
+.todo-form input,.todo-form textarea{width:100%;padding:10px 11px;font-size:12px}.todo-form textarea{resize:vertical;line-height:1.5}
+.todo-form input[type=date]{color-scheme:dark}.todo-form-actions{display:flex;justify-content:flex-end;gap:8px}
+.todo-progress{height:4px;margin:10px 0 7px;border-radius:5px;overflow:hidden;background:var(--surface-hover)}
+.todo-progress i{height:100%;display:block;background:var(--lime);border-radius:inherit;transition:width .2s}
+.todo-list{margin-top:12px}.todo-item{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:start;padding:14px 2px;border-top:1px solid var(--line)}
+.todo-item:first-child{border-top:0}.todo-check{width:24px;height:24px;display:grid;place-items:center;border:1px solid var(--surface-3);border-radius:7px;background:transparent;color:var(--surface)}
+.todo-check svg{width:14px}.todo-item.completed .todo-check{border-color:var(--lime);background:var(--lime)}
+.todo-item>div:nth-child(2){min-width:0}.todo-item b{font-size:12px;line-height:1.4;overflow-wrap:anywhere}.todo-item p{white-space:pre-wrap;margin:4px 0 0;color:var(--muted);font-size:10px;line-height:1.5;overflow-wrap:anywhere}
+.todo-item.completed b{text-decoration:line-through;color:var(--muted-2)}.todo-item.completed p{opacity:.55}
+.todo-item-actions{display:flex;gap:3px}.todo-item-actions button{border:0;background:transparent;color:var(--muted);font-size:9px;padding:5px}.todo-item-actions .danger{color:var(--red)}
+.today-todos-card .panel-heading a{font-size:9px;color:var(--lime)}
+.todo-card-count{display:block;text-align:right;color:var(--muted);font-size:9px}
+.todo-card-list{margin:9px 0}.todo-card-list label{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-top:1px solid var(--line);font-size:10px;line-height:1.35}
+.todo-card-list label.completed span{text-decoration:line-through;color:var(--muted-2)}.todo-card-list input{accent-color:var(--lime);margin-top:1px}
+.todo-card-list>p,.todo-inline-error{font-size:9px!important;margin:8px 0!important}.todo-inline-error{color:var(--red)!important}
+.todo-quick-add{display:flex;gap:6px}.todo-quick-add input{min-width:0;flex:1;padding:8px 9px;font-size:10px}.todo-quick-add button{width:31px;border:0;border-radius:7px;background:var(--lime);color:var(--surface);font-size:18px}
+.todo-quick-add button:disabled{opacity:.4}.todo-card-overdue{margin-top:10px;display:flex;align-items:center;gap:5px;color:var(--orange);font-size:9px}.todo-card-overdue svg{width:13px}
+
+@media(max-width:760px){
+  .todos-layout{grid-template-columns:1fr}.todo-form{position:static}.todo-datebar{flex-wrap:wrap}
+  .todo-date-summary{order:5;width:100%;margin:3px 0 0;text-align:left}.todo-datebar label{flex:1}.todo-datebar label input{width:100%}
+}
+@media(max-width:430px){
+  .todo-datebar .button{width:100%}.todo-item{grid-template-columns:28px minmax(0,1fr)}.todo-item-actions{grid-column:2}
+}

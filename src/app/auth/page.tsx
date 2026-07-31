@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { LogoIcon } from "@/components/icons";
 import { LoginForm } from "./login-form";
+import { ThemeMenu } from "@/components/theme-control";
 
 export default async function AuthPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const { error } = await searchParams;
   return (
     <main className="auth-page">
-      <Link href="/" className="brand auth-brand"><span><LogoIcon /></span>stride</Link>
+      <header className="auth-top"><Link href="/" className="brand auth-brand"><span><LogoIcon /></span>stride</Link><ThemeMenu /></header>
       <section className="auth-card">
         <div className="auth-heading">
           <span className="mini-logo"><LogoIcon /></span>

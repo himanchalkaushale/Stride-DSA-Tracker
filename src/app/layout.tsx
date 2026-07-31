@@ -5,7 +5,9 @@ import "./phase-two.css";
 import "./phase-three.css";
 import "./phase-four.css";
 import "./plans.css";
+import "./todos.css";
 import "./usability.css";
+import { ThemeProvider, themeBootstrapScript } from "@/components/theme-provider";
 
 export const metadata: Metadata = {
   title: { default: "Stride — DSA Progress Tracker", template: "%s · Stride" },
@@ -14,8 +16,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <head><script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} /></head>
+      <body><ThemeProvider>{children}</ThemeProvider></body>
     </html>
   );
 }

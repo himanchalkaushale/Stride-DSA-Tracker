@@ -4,13 +4,15 @@ import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import {
   AnalyticsIcon, BellIcon, FlameIcon, LogoIcon, LogoutIcon,
-  PlansIcon, ProblemsIcon, SettingsIcon, TodayIcon,
+  PlansIcon, ProblemsIcon, SettingsIcon, TodayIcon, TodosIcon,
 } from "./icons";
 import { signOut } from "@/app/auth/actions";
 import type { Reminder } from "@/lib/analytics";
+import { ThemeMenu } from "./theme-control";
 
 const navItems = [
   { href: "/today", label: "Today", icon: TodayIcon },
+  { href: "/todos", label: "Todos", icon: TodosIcon },
   { href: "/plans", label: "Plans", icon: PlansIcon },
   { href: "/problems", label: "Questions", icon: ProblemsIcon },
   { href: "/analytics", label: "Analytics", icon: AnalyticsIcon },
@@ -55,12 +57,12 @@ export function AppShell({
       </aside>
       <div className="mobile-top">
         <Link href="/today" className="brand"><span><LogoIcon /></span>stride</Link>
-        <ReminderMenu reminders={reminders} />
+        <div><ThemeMenu /><ReminderMenu reminders={reminders} /></div>
       </div>
       <div className="app-main">
         <header className="app-topbar">
           <span className="connection"><i /> Cloud sync active</span>
-          <div><ReminderMenu reminders={reminders} /><span className="avatar small" aria-label={`Signed in as ${displayName}`}>{initials || "DS"}</span></div>
+          <div><ThemeMenu /><ReminderMenu reminders={reminders} /><span className="avatar small" aria-label={`Signed in as ${displayName}`}>{initials || "DS"}</span></div>
         </header>
         <main>{children}</main>
       </div>

@@ -34,3 +34,9 @@ export const getCurrentTasks = cache(async () => {
   if (!user) return [];
   return new SupabaseTrackerRepository(supabase).listDailyTasks(user.id);
 });
+
+export const getCurrentTodos = cache(async () => {
+  const { supabase, user } = await getAppContext();
+  if (!user) return [];
+  return new SupabaseTrackerRepository(supabase).listTodos(user.id);
+});

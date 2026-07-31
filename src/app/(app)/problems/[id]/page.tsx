@@ -22,5 +22,6 @@ export default async function ProblemPage({ params }: { params: Promise<{ id: st
     initialRevisions={revisions}
     localDate={localDateKey(new Date(), profile?.timezone ?? "UTC")}
     preferredLanguage={profile?.preferred_languages[0] ?? "TypeScript"}
+    timeZone={profile?.timezone ?? "UTC"}
   />;
 }

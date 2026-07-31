@@ -11,8 +11,10 @@ import { Toast } from "@/components/toast";
 import { ProblemForm } from "@/components/problem-library";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { CsvPlanImporter } from "@/components/csv-plan-importer";
+import { formatDateKey, formatTimestamp } from "@/lib/date-format";
+import { TodayTodosCard } from "@/components/todos-dashboard";
 import type { TaskStatus } from "@/types/database";
-import type { Attempt, CustomProblemInput, DailyTask, ProblemWithProgress, Profile } from "@/types/models";
+import type { Attempt, CustomProblemInput, DailyTask, ProblemWithProgress, Profile, Todo } from "@/types/models";
 
 interface Props {
   userId: string;
@@ -22,10 +24,11 @@ interface Props {
   allTasks: DailyTask[];
   problems: ProblemWithProgress[];
   recentAttempts: Attempt[];
+  initialTodos: Todo[];
 }
 
 export function TodayDashboard({
-  userId, profile, dateKey, initialTasks, allTasks, problems, recentAttempts,
+  userId, profile, dateKey, initialTasks, allTasks, problems, recentAttempts, initialTodos,
 }: Props) {
   const router = useRouter();
   const repository = useMemo(() => new SupabaseTrackerRepository(createClient()), []);
@@ -167,9 +170,7 @@ export function TodayDashboard({
     router.push(`/plans/${planId}`);
   };
 
-  const date = new Intl.DateTimeFormat("en-US", {
-    timeZone: profile.timezone, weekday: "long", month: "long", day: "numeric",
-  }).format(new Date());
+  const date = formatDateKey(dateKey, { weekday: "long", month: "long", day: "numeric" });
 
   return (
     <div className="page-shell today-page">
@@ -222,11 +223,12 @@ export function TodayDashboard({
         </section>
 
         <aside className="today-side">
+          <TodayTodosCard userId={userId} todayKey={dateKey} initialTodos={initialTodos} />
           <section className="panel side-panel"><span className="page-kicker">UPCOMING PLAN</span><h2>{upcomingDates.length ? "Your next plan days" : "No future questions yet"}</h2>
             {upcomingDates.map((taskDate) => {
               const dayTasks = history.filter((task) => task.task_date === taskDate && task.status !== "skipped");
               const linkedPlanId = dayTasks.find((task) => task.plan_id)?.plan_id;
-              return <div className="mini-activity upcoming-day" key={taskDate}><div><b>{new Date(`${taskDate}T12:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}</b><small>{dayTasks.length} {dayTasks.length === 1 ? "question" : "questions"} planned</small></div><span>{dayTasks.map((task) => problemById.get(task.problem_id)?.title).filter(Boolean).slice(0, 2).join(", ")}{linkedPlanId && <Link href={`/plans/${linkedPlanId}`}>Manage plan →</Link>}</span></div>;
+              return <div className="mini-activity upcoming-day" key={taskDate}><div><b>{formatDateKey(taskDate, { weekday: "short", month: "short", day: "numeric" })}</b><small>{dayTasks.length} {dayTasks.length === 1 ? "question" : "questions"} planned</small></div><span>{dayTasks.map((task) => problemById.get(task.problem_id)?.title).filter(Boolean).slice(0, 2).join(", ")}{linkedPlanId && <Link href={`/plans/${linkedPlanId}`}>Manage plan →</Link>}</span></div>;
             })}
             {!upcomingDates.length && <p>Import a CSV to build a dated monthly plan automatically.</p>}
           </section>
@@ -235,7 +237,7 @@ export function TodayDashboard({
             {!overdue.length && <p>No reviews are waiting outside today&apos;s queue.</p>}
           </section>
           <section className="panel side-panel"><span className="page-kicker">RECENT ACTIVITY</span><h2>Latest sessions</h2>
-            {recentAttempts.slice(0, 5).map((attempt) => <div className="mini-activity" key={attempt.id}><div><b>{problemById.get(attempt.problem_id)?.title ?? "Problem"}</b><small>{attempt.result} · {attempt.duration_minutes} min</small></div><time>{new Date(attempt.attempted_at).toLocaleDateString()}</time></div>)}
+            {recentAttempts.slice(0, 5).map((attempt) => <div className="mini-activity" key={attempt.id}><div><b>{problemById.get(attempt.problem_id)?.title ?? "Problem"}</b><small>{attempt.result} · {attempt.duration_minutes} min</small></div><time>{formatTimestamp(attempt.attempted_at, profile.timezone, { month: "short", day: "numeric" })}</time></div>)}
             {!recentAttempts.length && <p>Your recorded attempts will appear here.</p>}
           </section>
         </aside>
